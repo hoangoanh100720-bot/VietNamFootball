@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+logs/
+.expo/
+dist/
+build/
+.DS_Store
+coverage/
+*.keystore
+google-services.json
+GoogleService-Info.plist
+serviceAccountKey.json

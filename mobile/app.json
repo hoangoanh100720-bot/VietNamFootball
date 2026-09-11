@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Bóng Đá Việt Nam",
+    "slug": "vietnam-football",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+
+    "//_userInterfaceStyle": "automatic = app tự đổi sáng/tối theo cài đặt điện thoại",
+    "userInterfaceStyle": "automatic",
+
+    "//_scheme": "Cần cho expo-router: mở app bằng đường dẫn vietnamfootball://match/12",
+    "scheme": "vietnamfootball",
+
+    "newArchEnabled": true,
+
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B1220"
+    },
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vietnamfootball.app",
+      "infoPlist": {
+        "//_ATS": "Cho phép gọi HTTP (không phải HTTPS) tới máy chủ dev trong mạng LAN. Khi lên production dùng HTTPS thì bỏ khối này đi.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    },
+
+    "android": {
+      "package": "com.vietnamfootball.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1220",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "//_cleartext": "Android 9+ chặn HTTP theo mặc định; bật cờ này để chạy được với backend dev http://192.168.x.x:5000",
+      "usesCleartextTraffic": true
+    },
+
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+
+    "plugins": ["expo-router", "expo-secure-store", "expo-image"],
+
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    /* Ngôn ngữ đích: Node 22 hiểu được ES2022 */
+    "target": "ES2022",
+    "lib": ["ES2022"],
+
+    /* Dùng CommonJS cho đơn giản: import/export vẫn viết kiểu ES,
+       TypeScript tự chuyển thành require() khi build. */
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    /* Thư mục nguồn và thư mục build */
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* Bật toàn bộ kiểm tra nghiêm ngặt -> bắt lỗi ngay lúc gõ code,
+       thay vì lúc chạy. Đây là lý do chính để dùng TypeScript. */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* Cho phép "import express from 'express'" với thư viện CommonJS */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    /* Đường dẫn tuyệt đối: import { env } from '@/config/env' */
+    "baseUrl": "./src",
+    "paths": { "@/*": ["*"] },
+
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "declaration": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
