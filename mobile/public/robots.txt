@@ -1,0 +1,41 @@
+# ============================================================================
+# ROBOTS.TXT — HƯỚNG DẪN CHO BOT CỦA CÁC CỖ MÁY TÌM KIẾM
+# ============================================================================
+#
+# File này nói cho Googlebot, Bingbot, Coccocbot... biết được vào đâu.
+#
+# ⚠️ HAI HIỂU LẦM PHỔ BIẾN, ĐỌC KỸ ĐỂ KHỎI TỰ HẠI MÌNH:
+#
+#   1. robots.txt KHÔNG BẢO MẬT ĐƯỢC GÌ.
+#      Ai cũng đọc được file này. Viết "Disallow: /admin-bi-mat/" chẳng khác
+#      nào treo biển chỉ đường tới đúng chỗ bạn muốn giấu. Muốn bảo vệ thì
+#      phải dùng xác thực, không phải dùng robots.txt.
+#
+#   2. "Disallow: /" CHẶN TOÀN BỘ TRANG KHỎI GOOGLE.
+#      Đây là lỗi kinh điển: dev để dòng đó ở môi trường thử nghiệm rồi đẩy
+#      nguyên lên production. Trang biến mất khỏi Google và không ai hiểu vì sao.
+#
+# ============================================================================
+
+User-agent: *
+Allow: /
+
+# Chặn các đường dẫn không có giá trị với người tìm kiếm.
+# Để Google cào những trang này chỉ làm loãng "ngân sách cào" (crawl budget)
+# mà nó dành cho site của bạn — trang thật sự quan trọng lại bị cào chậm đi.
+Disallow: /api/
+Disallow: /_expo/
+# /_sitemap là trang liệt kê route do Expo tự sinh, chỉ hữu ích khi dev
+Disallow: /_sitemap
+Disallow: /login
+Disallow: /register
+
+# Nghỉ 1 giây giữa hai lần cào. Vừa lịch sự, vừa bảo vệ máy chủ của chính bạn
+# khỏi bị dội bom lúc Google cào diện rộng.
+# (Googlebot bỏ qua chỉ thị này, nhưng Bingbot và nhiều bot khác thì tuân thủ.)
+Crawl-delay: 1
+
+# ⚠️ ĐỔI THÀNH TÊN MIỀN THẬT CỦA BẠN.
+# Đây là cách đáng tin cậy nhất để báo cho mọi cỗ máy tìm kiếm biết sitemap
+# nằm ở đâu — không phụ thuộc vào việc bạn có khai báo trong Search Console hay chưa.
+Sitemap: https://doituyenvietnam.vn/sitemap.xml

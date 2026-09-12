@@ -8,6 +8,40 @@
  * là dùng ngay được, không phải chuyển đổi qua lại.
  *
  * Lợi ích: gõ `player.` là editor gợi ý đủ mọi trường, gõ sai tên là báo đỏ ngay.
+ *
+ * ============================================================================
+ * ⚠️ TYPESCRIPT KHÔNG KIỂM TRA GIÙM BẠN Ở ĐÂY — ĐỌC KỸ ĐOẠN NÀY
+ * ============================================================================
+ *
+ * `query<Player>('SELECT * FROM players')` chỉ là một LỜI HỨA của bạn với
+ * TypeScript, không phải một phép kiểm tra. Nếu SQL trả về cột khác với
+ * interface Player, TypeScript vẫn im lặng cho qua — vì nó không biết bên
+ * trong database có gì.
+ *
+ * 👉 Nghĩa là: đổi tên cột trong migration thì PHẢI sửa interface ở đây.
+ *    Quên sửa = code biên dịch sạch nhưng chạy ra `undefined`.
+ *
+ * ----------------------------------------------------------------------------
+ * 🔗 BA NƠI PHẢI KHỚP NHAU, SỬA MỘT THÌ SỬA CẢ BA
+ *
+ *   1. `src/db/migrations/*.sql`      — cột thật trong database
+ *   2. file này                        — hợp đồng phía backend
+ *   3. `mobile/src/types/index.ts`     — hợp đồng phía app
+ *
+ * Không có công cụ nào tự canh ba chỗ này cho bạn. Cách an toàn nhất là mỗi
+ * lần đổi schema thì mở đủ ba file cùng lúc.
+ *
+ * ----------------------------------------------------------------------------
+ * 🔐 MẪU `PublicUser` — HÃY DÙNG LẠI Ý TƯỞNG NÀY
+ *
+ *     export type PublicUser = Omit<User, 'password_hash'>;
+ *
+ * `Omit` tạo ra một kiểu y hệt User nhưng CẮT BỎ trường password_hash. Mọi
+ * hàm trả dữ liệu người dùng ra ngoài đều khai kiểu này, nên TypeScript sẽ
+ * BÁO ĐỎ nếu ai đó lỡ tay trả cả mã băm mật khẩu về cho client.
+ *
+ * Đây là cách biến một quy tắc bảo mật thành thứ mà trình biên dịch tự canh —
+ * đáng tin hơn nhiều so với việc nhớ trong đầu "nhớ đừng trả password nhé".
  */
 
 // ---------------------------------------------------------------------------

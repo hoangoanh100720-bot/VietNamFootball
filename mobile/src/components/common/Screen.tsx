@@ -37,6 +37,21 @@ import { useTheme } from '@/theme';
 
 interface ScreenProps {
   children: ReactNode;
+  /**
+   * ⭐ KHỐI ĐẦU MÀN HÌNH TRÀN VIỀN (full-bleed).
+   *
+   * Nội dung thường (children) luôn có lề hai bên `spacing.lg` cho dễ đọc.
+   * Nhưng khối hero, ảnh bìa hay dải màu thì PHẢI chạm sát mép màn hình —
+   * chừa lề ra là lộ ngay hai vệt nền hai bên, trông như vẽ hụt.
+   *
+   * Prop này render TRƯỚC và NGOÀI phần lề, nên cùng một màn hình vừa có
+   * hero tràn viền vừa có nội dung canh lề gọn gàng.
+   *
+   *   <Screen header={<HeroBanner>...</HeroBanner>}>
+   *     ...nội dung có lề...
+   *   </Screen>
+   */
+  header?: ReactNode;
   /** true = nội dung cuộn được (mặc định) */
   scroll?: boolean;
   /** Hàm gọi khi người dùng kéo xuống để làm mới */
@@ -51,6 +66,7 @@ interface ScreenProps {
 
 export function Screen({
   children,
+  header,
   scroll = true,
   onRefresh,
   refreshing = false,
@@ -61,6 +77,7 @@ export function Screen({
 }: ScreenProps) {
   const t = useTheme();
 
+  // Phần nội dung CÓ LỀ. Khối header ở dưới được render riêng, ngoài lề này.
   const content = (
     <View
       style={[
@@ -114,10 +131,14 @@ export function Screen({
           // Bàn phím hiện lên mà chạm ra ngoài thì tự ẩn đi
           keyboardShouldPersistTaps="handled"
         >
+          {header}
           {content}
         </ScrollView>
       ) : (
-        content
+        <>
+          {header}
+          {content}
+        </>
       )}
     </SafeAreaView>
   );

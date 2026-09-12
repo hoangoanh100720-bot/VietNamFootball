@@ -34,11 +34,12 @@
  */
 
 import cron, { type ScheduledTask } from 'node-cron';
-import { env } from '@/config/env';
+import { env, crawlerSeedUrls } from '@/config/env';
 import { logger } from '@/utils/logger';
 import { cleanupExpiredTokens } from '@/modules/auth/auth.service';
 import { cacheDel } from '@/utils/cache';
 import { syncFixtures, syncPlayers, syncRanking, syncSquad } from '@/services/crawler.service';
+import { crawl } from '@/services/crawl/crawler';
 
 const tasks: ScheduledTask[] = [];
 
@@ -95,6 +96,50 @@ export function startScheduler(): void {
 
   // 01:30 — BXH FIFA
   tasks.push(cron.schedule(env.CRON_SYNC_RANKING, createJob('syncRanking', syncRanking), options));
+
+  /**
+   * ⭐ 01:40 — CÀO KHO TRI THỨC CHO TRỢ LÝ AI
+   *
+   * Khác với bốn job phía trên (lấy SỐ LIỆU từ api-football), job này lấy
+   * KIẾN THỨC từ các trang web công khai để trợ lý AI có cái mà tra cứu.
+   * Xem bảng so sánh ở đầu services/crawler.service.ts.
+   *
+   * 🕐 VÌ SAO ĐẶT LÚC 01:40 SÁNG?
+   *   1. Máy chủ của người ta cũng rảnh giờ này — cào lúc đó là lịch sự.
+   *   2. Quota Gemini reset theo ngày; chạy sớm thì phần quota còn lại trong
+   *      ngày vẫn đủ phục vụ người dùng thật.
+   *   3. Cách job 01:30 mười phút để hai job không tranh nhau kết nối database.
+   *
+   * 💰 Job này rẻ hơn nhiều so với vẻ ngoài của nó: nhờ so `content_hash`,
+   * trang nào không đổi nội dung sẽ bị bỏ qua hoàn toàn, không tốn một lượt
+   * gọi API nhúng vector nào. Chạy hằng đêm 30 trang mà chỉ vài trang có bài
+   * mới thì chi phí gần như bằng không.
+   *
+   * ⚙️ Job chỉ chạy khi CRAWLER_SEED_URLS có giá trị trong .env — không cấu
+   * hình thì nó tự bỏ qua, không báo lỗi.
+   */
+  if (crawlerSeedUrls.length > 0) {
+    tasks.push(
+      cron.schedule(
+        '40 1 * * *',
+        createJob('crawlKnowledge', async () => {
+          const report = await crawl({
+            seedUrls: crawlerSeedUrls,
+            // Giới hạn thấp hơn lúc chạy tay: job nền không nên ngốn hết quota
+            maxPages: Math.min(env.CRAWLER_MAX_PAGES, 30),
+            useAi: true,
+            embed: true,
+          });
+          logger.info(
+            `[CRON] Cào tri thức: ${report.documentsSaved} tài liệu mới, ` +
+              `${report.documentsSkipped} không đổi, ${report.chunksEmbedded} đoạn đã nhúng`
+          );
+          return report.documentsSaved;
+        }),
+        options
+      )
+    );
+  }
 
   // 02:00 — dọn dẹp
   tasks.push(

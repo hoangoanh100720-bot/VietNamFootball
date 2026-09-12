@@ -31,6 +31,7 @@
  */
 
 import { Platform } from 'react-native';
+import { staticColors } from '@/theme/colors';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -70,7 +71,9 @@ async function setupAndroidChannel(): Promise<void> {
     description: 'Bàn thắng, thẻ phạt và kết quả trận đấu',
     importance: Notifications.AndroidImportance.HIGH, // hiện dải + có âm thanh
     vibrationPattern: [0, 250, 250, 250], // chờ 0ms, rung 250, nghỉ 250, rung 250
-    lightColor: '#DA251D', // màu đèn LED báo (máy nào có)
+    // Màu đèn LED báo (máy nào còn có đèn). Lấy từ token thay vì viết mã màu
+    // thô: đổi nhận diện thương hiệu thì đèn báo cũng đổi theo, không sót chỗ này.
+    lightColor: staticColors.decor.flagRed,
     sound: 'default',
   });
 }

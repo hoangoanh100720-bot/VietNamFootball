@@ -31,6 +31,7 @@ import {
   type PredictionResult,
   type TeamContext,
 } from '@/services/gemini.service';
+import { getPoolStats } from '@/config/gemini';
 import * as matchesService from '@/modules/matches/matches.service';
 import type { AiPrediction } from '@/types';
 
@@ -347,12 +348,27 @@ export async function getPrediction(matchId: number, forceRefresh = false) {
   return { ...saved, source };
 }
 
-/** Trạng thái cấu hình AI — để app hiển thị nhãn "AI thật" hay "mô hình thống kê" */
+/**
+ * Trạng thái cấu hình AI — app dùng để hiển thị nhãn "AI thật" hay "mô hình thống kê".
+ *
+ * ⭐ Có kèm tình trạng HỒ KEY: bao nhiêu key đang sẵn sàng, bao nhiêu key đang
+ * bị phạt nghỉ vì hết lượt. Nhìn vào đây là biết ngay có cần thêm key hay không.
+ *
+ * 🔐 Key trong danh sách đã được CHE ("AQ.Ab8R…mLBY"), không bao giờ lộ nguyên văn.
+ */
 export function getAiStatus() {
+  const pool = getPoolStats();
+
   return {
     gemini_enabled: isGeminiEnabled(),
     model: isGeminiEnabled() ? env.GEMINI_MODEL : 'elo-statistical-v1',
     fallback: 'Mô hình thống kê Elo dựa trên điểm FIFA, phong độ và lợi thế sân nhà',
+    key_pool: {
+      total: pool.total,
+      available: pool.available,
+      cooling: pool.cooling,
+      keys: pool.keys,
+    },
   };
 }
 

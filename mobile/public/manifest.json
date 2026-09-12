@@ -1,0 +1,69 @@
+{
+  "//_file": "MANIFEST.JSON — biến trang web thành PWA, cài được lên màn hình chính như một app thật.",
+  "//_seo": "Google tính 'cài đặt được' vào điểm trải nghiệm. Ngoài ra người dùng cài PWA quay lại thường xuyên hơn hẳn.",
+
+  "name": "Đội tuyển Việt Nam — Lịch thi đấu & Tỷ số trực tiếp",
+  "//_name": "Tên đầy đủ, hiện ở màn hình chờ lúc mở app.",
+
+  "short_name": "ĐT Việt Nam",
+  "//_short_name": "⚠️ TỐI ĐA 12 KÝ TỰ. Dài hơn sẽ bị Android cắt cụt ngay dưới biểu tượng ở màn hình chính.",
+
+  "description": "Tỷ số trực tiếp, lịch thi đấu, đội hình và bảng xếp hạng FIFA của Đội tuyển Bóng đá Quốc gia Việt Nam.",
+
+  "lang": "vi-VN",
+  "dir": "ltr",
+
+  "start_url": "/?source=pwa",
+  "//_start_url": "Tham số source=pwa cho phép bạn đo được bao nhiêu lượt truy cập đến từ bản đã cài.",
+
+  "display": "standalone",
+  "//_display": "standalone = mở toàn màn hình, không có thanh địa chỉ trình duyệt -> cảm giác như app thật.",
+
+  "orientation": "portrait",
+
+  "background_color": "#0A1A12",
+  "//_background_color": "Màu màn hình chờ lúc app khởi động. Phải TRÙNG với nền app, nếu lệch sẽ thấy một cú chớp màu.",
+
+  "theme_color": "#DA251D",
+  "//_theme_color": "Đỏ cờ — màu thanh trạng thái khi mở bản PWA.",
+
+  "categories": ["sports", "news"],
+
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable",
+      "//_maskable": "Biểu tượng có vùng đệm an toàn để Android cắt thành hình tròn/vuông bo mà không mất chi tiết. Thiếu loại này, biểu tượng bị cắt cụt trên nhiều máy Android."
+    }
+  ],
+
+  "shortcuts": [
+    {
+      "//": "Nhấn giữ biểu tượng app trên màn hình chính -> hiện menu tắt này.",
+      "name": "Tỷ số trực tiếp",
+      "short_name": "Tỷ số",
+      "url": "/?source=shortcut",
+      "description": "Xem trận đang diễn ra"
+    },
+    {
+      "name": "Đội hình ra sân",
+      "short_name": "Đội hình",
+      "url": "/squad?source=shortcut",
+      "description": "Sơ đồ chiến thuật trận gần nhất"
+    }
+  ]
+}

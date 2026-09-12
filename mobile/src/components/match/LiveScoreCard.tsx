@@ -121,7 +121,7 @@ export function LiveScoreCard({
         <View style={{ flex: 1 }}>
           <AppText
             variant="overline"
-            style={{ color: isLive ? 'rgba(255,255,255,0.85)' : t.colors.textMuted }}
+            style={{ color: isLive ? t.static.onDark.text : t.colors.textMuted }}
             numberOfLines={1}
           >
             {match.competition}
@@ -129,7 +129,7 @@ export function LiveScoreCard({
           {match.round && (
             <AppText
               variant="caption"
-              style={{ color: isLive ? 'rgba(255,255,255,0.65)' : t.colors.textFaint }}
+              style={{ color: isLive ? t.static.onDark.textMuted : t.colors.textFaint }}
               numberOfLines={1}
             >
               {match.round}
@@ -200,7 +200,7 @@ export function LiveScoreCard({
                 {homeScore}
                 <AppText
                   variant="h1"
-                  style={{ color: isLive ? 'rgba(255,255,255,0.5)' : t.colors.textFaint }}
+                  style={{ color: isLive ? t.static.onDark.textFaint : t.colors.textFaint }}
                 >
                   {'  -  '}
                 </AppText>
@@ -227,7 +227,7 @@ export function LiveScoreCard({
           justifyContent: 'space-between',
           gap: t.spacing.sm,
           borderTopWidth: 1,
-          borderTopColor: isLive ? 'rgba(255,255,255,0.15)' : t.colors.border,
+          borderTopColor: isLive ? t.static.onDark.border : t.colors.border,
           paddingTop: t.spacing.md,
         }}
       >
@@ -235,12 +235,12 @@ export function LiveScoreCard({
           <Ionicons
             name="location-outline"
             size={13}
-            color={isLive ? 'rgba(255,255,255,0.7)' : t.colors.textFaint}
+            color={isLive ? t.static.onDark.textMuted : t.colors.textFaint}
           />
           <AppText
             variant="caption"
             numberOfLines={1}
-            style={{ color: isLive ? 'rgba(255,255,255,0.7)' : t.colors.textFaint, flex: 1 }}
+            style={{ color: isLive ? t.static.onDark.textMuted : t.colors.textFaint, flex: 1 }}
           >
             {match.venue ?? 'Chưa xác định sân'}
           </AppText>
@@ -259,13 +259,13 @@ export function LiveScoreCard({
                 connectionMode === 'polling' ? 'refresh' : 'cloud-offline-outline'
               }
               size={12}
-              color={connectionMode === 'socket' ? t.static.liveGold : 'rgba(255,255,255,0.7)'}
+              color={connectionMode === 'socket' ? t.static.liveGold : t.static.onDark.textMuted}
             />
             <AppText
               style={{
                 fontSize: 10,
                 fontWeight: t.fontWeight.semibold,
-                color: connectionMode === 'socket' ? t.static.liveGold : 'rgba(255,255,255,0.7)',
+                color: connectionMode === 'socket' ? t.static.liveGold : t.static.onDark.textMuted,
               }}
             >
               {connectionMode === 'socket' ? 'TRỰC TIẾP' :

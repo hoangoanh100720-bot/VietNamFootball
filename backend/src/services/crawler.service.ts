@@ -1,6 +1,27 @@
 /**
  * ============================================================================
- * SERVICES/CRAWLER.SERVICE.TS — ĐỒNG BỘ DỮ LIỆU TỪ NGUỒN NGOÀI
+ * SERVICES/CRAWLER.SERVICE.TS — ĐỒNG BỘ DỮ LIỆU TỪ API NHÀ CUNG CẤP
+ * ============================================================================
+ *
+ * ⚠️ ĐỪNG NHẦM VỚI services/crawl/ — HAI THỨ KHÁC HẲN NHAU:
+ *
+ *   ┌──────────────────────┬───────────────────────┬────────────────────────┐
+ *   │                      │ FILE NÀY              │ services/crawl/        │
+ *   ├──────────────────────┼───────────────────────┼────────────────────────┤
+ *   │ Nguồn                │ API có giấy phép      │ Trang web công khai    │
+ *   │                      │ (api-football)        │ (VFF, báo thể thao)    │
+ *   │ Dữ liệu              │ CÓ CẤU TRÚC: tỷ số,   │ VĂN BẢN TỰ DO: bài     │
+ *   │                      │ đội hình, bảng xếp    │ viết, lịch sử, luật    │
+ *   │ Ghi vào bảng         │ matches, players,     │ kb_documents,          │
+ *   │                      │ lineups, fifa_rankings│ kb_chunks              │
+ *   │ Dùng để              │ Hiển thị trên app     │ Trợ lý AI tra cứu      │
+ *   │ Cần gì               │ FOOTBALL_API_KEY      │ GEMINI_API_KEYS        │
+ *   │ Chạy bằng            │ cron (jobs/scheduler) │ npm run crawl          │
+ *   └──────────────────────┴───────────────────────┴────────────────────────┘
+ *
+ * Nói ngắn gọn: file này lấy SỐ LIỆU, services/crawl/ lấy KIẾN THỨC.
+ * Hai đường dữ liệu độc lập, không thay thế được cho nhau.
+ *
  * ============================================================================
  *
  * BỐN JOB, MỘT KHUÔN MẪU CHUNG:

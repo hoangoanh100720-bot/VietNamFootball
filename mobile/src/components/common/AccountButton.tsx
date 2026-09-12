@@ -5,15 +5,20 @@
  *
  * Nút nhỏ ở góc phải tiêu đề màn hình chính. Hai trạng thái:
  *   • Chưa đăng nhập -> icon người, bấm vào mở màn hình đăng nhập
- *   • Đã đăng nhập   -> chữ cái đầu tên, bấm vào hỏi đăng xuất
+ *   • Đã đăng nhập   -> chữ cái đầu tên
+ *
+ * Chạm vào -> mở màn hình Cài đặt (app/settings.tsx).
  *
  * VÌ SAO KHÔNG LÀM HẲN MỘT TAB "TÀI KHOẢN"?
  * Vì app này chủ yếu để XEM thông tin công khai. Tài khoản chỉ phục vụ
- * thông báo bàn thắng. Dành trọn 25% thanh tab cho tính năng phụ là lãng phí
- * — bốn tab hiện tại đều là nội dung chính.
+ * thông báo bàn thắng. Dành trọn một ô tab cho tính năng phụ là lãng phí —
+ * năm tab hiện tại đều là nội dung chính.
+ *
+ * ⚠️ NGOẠI LỆ: ở Senior mode, Cài đặt trở thành MỘT TRONG BA TAB
+ * (ARCHITECTURE.md mục 7.3), vì người lớn tuổi khó tìm nút nhỏ ở góc màn hình.
  */
 
-import { Alert, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
@@ -25,30 +30,23 @@ export function AccountButton() {
   const router = useRouter();
 
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
 
+  /**
+   * ⭐ CHẠM VÀO ẢNH ĐẠI DIỆN -> MỞ MÀN HÌNH CÀI ĐẶT.
+   *
+   * Đây chính là mẫu mà App Store dùng: ảnh đại diện ở góc phải là cửa vào
+   * mọi thứ thuộc về "tôi" — tài khoản, giao diện, thông báo.
+   *
+   * 🐛 BẢN TRƯỚC HIỆN MỘT HỘP THOẠI CHỈ CÓ "ĐĂNG XUẤT" — và đó là thiết kế sai:
+   * người dùng chạm vào avatar để TÌM CÀI ĐẶT, không phải để đăng xuất. Đưa
+   * hành động phá huỷ nhất lên làm lựa chọn duy nhất là mời họ bấm nhầm.
+   *
+   * Giờ đăng xuất nằm ở cuối màn hình Cài đặt, đúng chỗ của nó.
+   */
   const handlePress = () => {
-    if (!user) {
-      router.push('/(auth)/login');
-      return;
-    }
-
-    // Alert.alert là hộp thoại gốc của hệ điều hành — dùng cho hành động
-    // cần XÁC NHẬN. Đăng xuất nhầm rất khó chịu nên phải hỏi lại.
-    Alert.alert(
-      user.full_name,
-      user.email,
-      [
-        { text: 'Đóng', style: 'cancel' },
-        {
-          text: 'Đăng xuất',
-          // style 'destructive' -> iOS tự hiển thị chữ màu đỏ
-          style: 'destructive',
-          onPress: () => void logout(),
-        },
-      ],
-      { cancelable: true }
-    );
+    // Chưa đăng nhập vẫn vào Cài đặt được — ở đó có sẵn nút đăng nhập,
+    // và các mục giao diện/senior mode không hề cần tài khoản.
+    router.push('/settings');
   };
 
   const initial = user?.full_name?.trim().charAt(0).toUpperCase() ?? '';

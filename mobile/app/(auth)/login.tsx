@@ -28,6 +28,7 @@ import { AppText } from '@/components/common/Text';
 import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { useAuthStore } from '@/store/authStore';
+import { Seo } from '@/components/common/Seo';
 
 export default function LoginScreen() {
   const t = useTheme();
@@ -80,6 +81,18 @@ export default function LoginScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: t.colors.bg }}>
       <StatusBar style={t.isDark ? 'light' : 'dark'} />
 
+      {/*
+        noIndex: màn hình đăng nhập KHÔNG được lọt vào kết quả Google.
+        Nó chẳng giúp gì người tìm kiếm, và một trang đăng nhập nằm chình ình
+        trên Google chỉ mời gọi các công cụ dò mật khẩu tự động.
+      */}
+      <Seo
+        title="Đăng nhập"
+        description="Đăng nhập để lưu cầu thủ yêu thích và nhận thông báo bàn thắng."
+        path="/login"
+        noIndex
+      />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         // iOS đẩy toàn bộ khung lên; Android chỉ cần thu nhỏ chiều cao
@@ -97,6 +110,18 @@ export default function LoginScreen() {
         >
           {/* ================= PHẦN ĐẦU ================= */}
           <View style={{ alignItems: 'center', gap: t.spacing.md }}>
+            {/*
+              HUY HIỆU TRÒN ĐỎ CỜ — điểm neo thị giác của màn hình đăng nhập.
+
+              📐 Vì sao borderRadius = radius.full (9999) chứ không phải 36?
+              Đặt một số lớn hơn hẳn nửa cạnh thì hình LUÔN tròn hoàn hảo, dù
+              sau này ai đó đổi width/height thành 80 hay 100. Ghi cứng 36 thì
+              đổi kích thước là hình biến thành bo góc méo mó.
+
+              ⚠️ Chữ/icon đặt TRÊN nền đỏ cố định nên phải dùng `accentFg`
+              (màu chữ dành riêng cho nền accent), KHÔNG dùng t.colors.text.
+              Dùng nhầm thì ở chế độ sáng icon sẽ là xanh đậm trên nền đỏ.
+            */}
             <View
               style={{
                 width: 72,
@@ -107,7 +132,7 @@ export default function LoginScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="football" size={38} color="#FFFFFF" />
+              <Ionicons name="football" size={38} color={t.colors.accentFg} />
             </View>
 
             <View style={{ alignItems: 'center', gap: 2 }}>

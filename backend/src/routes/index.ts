@@ -20,6 +20,9 @@ import { coachRouter, playersRouter } from '@/modules/players/players.route';
 import { rankingRouter } from '@/modules/ranking/ranking.route';
 import { aiRouter } from '@/modules/ai/ai.route';
 import { devicesRouter } from '@/modules/devices/devices.route';
+import { searchRouter } from '@/modules/search/search.route';
+import { teamRouter } from '@/modules/team/team.route';
+import { ratingsRouter } from '@/modules/ratings/ratings.route';
 
 export const apiRouter = Router();
 
@@ -39,4 +42,7 @@ apiRouter.use('/coach', coachRouter);     // huấn luyện viên trưởng
 apiRouter.use('/ranking', rankingRouter); // bảng xếp hạng FIFA
 
 apiRouter.use('/ai', aiRouter);           // dự đoán Thắng/Hoà/Thua bằng AI
+apiRouter.use('/team', teamRouter);
+apiRouter.use('/ratings', ratingsRouter); // điểm cầu thủ + bảng giải thích 'Vì sao 8.3?'     // hồ sơ đội tuyển + tủ danh hiệu (Tab Giới thiệu)
+apiRouter.use('/search', searchRouter);   // tìm kiếm lai: vector + từ khoá trên kho tri thức
 apiRouter.use('/devices', devicesRouter); // đăng ký thiết bị nhận thông báo (cần đăng nhập)

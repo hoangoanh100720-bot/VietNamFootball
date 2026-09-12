@@ -1,20 +1,24 @@
 /**
  * ============================================================================
- * APP/(TABS)/_LAYOUT.TSX — THANH ĐIỀU HƯỚNG 4 TAB
+ * APP/(TABS)/_LAYOUT.TSX — THANH ĐIỀU HƯỚNG 5 TAB
  * ============================================================================
  *
  * Đúng theo sơ đồ mục 2 của ARCHITECTURE.md:
  *
- *   ┌──────────┬──────────┬──────────┬──────────┐
- *   │ Trận Đấu │ Đội Hình │ Cầu Thủ  │ AI & BXH │
- *   └──────────┴──────────┴──────────┴──────────┘
+ *   ┌───────────┬──────────┬──────────┬─────────┬──────────┐
+ *   │ Giới thiệu│ Trận đấu │ Đội hình │ Cầu thủ │ AI & BXH │
+ *   └───────────┴──────────┴──────────┴─────────┴──────────┘
  *
  * ----------------------------------------------------------------------------
  * NHỮNG QUYẾT ĐỊNH THIẾT KẾ CỦA THANH TAB
  *
- * 1. BỐN TAB LÀ VỪA ĐẸP
- *    3-5 tab là khoảng lý tưởng. Dưới 3 thì thừa thanh tab; trên 5 thì
- *    mỗi ô quá hẹp, chữ bị cắt và ngón tay bấm nhầm.
+ * 1. NĂM TAB LÀ TRẦN TRÊN
+ *    3-5 tab là khoảng lý tưởng. Dưới 3 thì thừa thanh tab; QUÁ 5 thì mỗi ô
+ *    quá hẹp, chữ bị cắt và ngón tay bấm nhầm.
+ *
+ *    ⚠️ Đang ở đúng mức trần. Muốn thêm tính năng mới thì KHÔNG thêm tab thứ 6 —
+ *    hãy gộp vào một tab sẵn có (như Trợ lý AI được đặt trong tab AI & BXH),
+ *    hoặc mở từ nút tài khoản góc phải màn hình.
  *
  * 2. MỘT KIỂU "ĐANG CHỌN" DUY NHẤT
  *    Tab đang mở: icon TÔ ĐẶC + màu đỏ nhấn + chữ đậm.
@@ -28,16 +32,41 @@
  * 4. THANH TAB LÀ THỨ THẬT SỰ "NỔI" -> đây là một trong số ít chỗ dùng bóng đổ.
  */
 
-import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import { useTheme } from '@/theme';
+import { useSettingsStore } from '@/store/settingsStore';
 
 /** Cỡ icon tab cố định — xem giải thích ở tabBarLabelStyle bên dưới */
 const ICON_SIZE = 22;
 
 export default function TabsLayout() {
   const t = useTheme();
+  const router = useRouter();
+
+  /**
+   * ⭐ ĐIỀU HƯỚNG SANG PHẦN GIỚI THIỆU KHI MỞ APP LẦN ĐẦU (mục 4.1).
+   *
+   * Ba điều kiện phải đúng cùng lúc:
+   *   1. `hydrated` — đã đọc xong cài đặt từ ổ đĩa. Chưa đọc xong mà điều
+   *      hướng thì người dùng cũ cũng bị bắt xem lại onboarding.
+   *   2. `!seenOnboarding` — thật sự chưa xem lần nào
+   *   3. Chạy trong useEffect, KHÔNG chạy khi đang render
+   *
+   * ⚠️ Điểm 3 rất quan trọng: gọi router.replace() ngay trong thân component
+   * sẽ khiến React báo lỗi "Cannot update a component while rendering a
+   * different component". Mọi tác dụng phụ điều hướng đều phải nằm trong effect.
+   */
+  const hydrated = useSettingsStore((s) => s.hydrated);
+  const seenOnboarding = useSettingsStore((s) => s.seenOnboarding);
+
+  useEffect(() => {
+    if (hydrated && !seenOnboarding) {
+      router.replace('/onboarding');
+    }
+  }, [hydrated, seenOnboarding, router]);
 
   return (
     <Tabs
@@ -65,7 +94,7 @@ export default function TabsLayout() {
           // Bóng nhẹ — thanh tab thực sự nổi trên nội dung
           ...Platform.select({
             ios: {
-              shadowColor: '#000',
+              shadowColor: t.static.black,
               shadowOffset: { width: 0, height: -2 },
               shadowOpacity: 0.08,
               shadowRadius: 8,
@@ -96,7 +125,29 @@ export default function TabsLayout() {
         tabBarHideOnKeyboard: true,
       }}
     >
-      {/* ---------------- TAB 1: TRẬN ĐẤU ---------------- */}
+      {/* ---------------- TAB 1: GIỚI THIỆU ---------------- */}
+      {/*
+        ⚠️ THỨ TỰ KHAI BÁO <Tabs.Screen> QUYẾT ĐỊNH THỨ TỰ TRÊN THANH TAB.
+        Không có prop nào để sắp xếp — cứ khai trước thì nằm bên trái.
+        Muốn đổi vị trí một tab thì di chuyển cả khối <Tabs.Screen> của nó.
+
+        📌 Vì sao "Giới thiệu" đứng đầu chứ không phải "Trận đấu"?
+        Theo đặc tả ARCHITECTURE.md mục 5.1. Người mở app lần đầu cần biết
+        "đội tuyển này là ai" trước; người dùng thường xuyên thì chỉ cần một
+        cú chạm sang tab Trận đấu — và app tự nhớ tab họ đang ở khi quay lại.
+      */}
+      <Tabs.Screen
+        name="intro"
+        options={{
+          title: 'Giới thiệu',
+          tabBarAccessibilityLabel: 'Tab Giới thiệu và thành tích đội tuyển',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'flag' : 'flag-outline'} size={ICON_SIZE} color={color} />
+          ),
+        }}
+      />
+
+      {/* ---------------- TAB 2: TRẬN ĐẤU ---------------- */}
       <Tabs.Screen
         name="index"
         options={{
@@ -113,7 +164,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* ---------------- TAB 2: ĐỘI HÌNH ---------------- */}
+      {/* ---------------- TAB 3: ĐỘI HÌNH ---------------- */}
       <Tabs.Screen
         name="squad"
         options={{
@@ -125,7 +176,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* ---------------- TAB 3: CẦU THỦ ---------------- */}
+      {/* ---------------- TAB 4: CẦU THỦ ---------------- */}
       <Tabs.Screen
         name="players"
         options={{
@@ -137,7 +188,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* ---------------- TAB 4: AI & BXH ---------------- */}
+      {/* ---------------- TAB 5: AI & BXH ---------------- */}
       <Tabs.Screen
         name="ai"
         options={{

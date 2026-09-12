@@ -184,3 +184,94 @@ export const duration = {
 /** Kích thước tối thiểu của vùng chạm — chuẩn của Apple và Google */
 export const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 export const MIN_TOUCH_SIZE = 44;
+
+// ===========================================================================
+// ⭐ 6. GIAO DIỆN CHO NGƯỜI LỚN TUỔI (SENIOR MODE)
+// ===========================================================================
+/**
+ * Đặc tả: ARCHITECTURE.md mục 7.2
+ *
+ * 🎯 VÌ SAO CẦN CHẾ ĐỘ NÀY?
+ * Ông bà, cha mẹ là những người hâm mộ trung thành nhất, nhưng app bóng đá
+ * thường có chữ nhỏ, quá nhiều số liệu và nhiều thao tác vuốt. Senior mode
+ * ưu tiên đúng ba câu hỏi họ thật sự quan tâm:
+ *
+ *     Mấy giờ đá?   ·   Xem kênh nào?   ·   Tỷ số bao nhiêu?
+ *
+ * ----------------------------------------------------------------------------
+ * 💡 CÁCH LÀM THÔNG MINH NHẤT: NHÂN HỆ SỐ VÀO TOKEN, KHÔNG VIẾT LẠI GIAO DIỆN
+ *
+ * Thay vì viết hai bộ component (một cho người thường, một cho người lớn tuổi),
+ * ta chỉ NHÂN HỆ SỐ vào các token rồi đưa vào ThemeProvider.
+ *
+ * Component vẫn viết `t.fontSize.base` như cũ và KHÔNG cần biết gì về senior
+ * mode — nhưng con số nó nhận được là 20 thay vì 15.
+ *
+ *   ✅ Không nhân đôi lượng code
+ *   ✅ Tính năng mới tự động hỗ trợ senior mode
+ *   ✅ Không bao giờ có chuyện "quên cập nhật bản senior"
+ *
+ * ----------------------------------------------------------------------------
+ * ⚠️ VÌ SAO KHÔNG DÙNG MỘT HỆ SỐ DUY NHẤT CHO TẤT CẢ?
+ *
+ * Nhân đều mọi thứ ×1.33 sẽ làm khoảng cách phình ra quá đà: màn hình chỉ còn
+ * chứa được hai dòng, người dùng phải cuộn liên tục — tệ hơn cả chữ nhỏ.
+ *
+ * Nên CHỮ tăng mạnh (×1.33) còn KHOẢNG CÁCH chỉ tăng nhẹ (×1.25), đúng theo
+ * bảng thông số trong đặc tả.
+ */
+
+/** Cỡ chữ ở chế độ người lớn tuổi — bỏ hẳn hai cỡ nhỏ nhất */
+export const seniorFontSize = {
+  /**
+   * ⚠️ xs và sm đều nâng lên 16 — cỡ nhỏ nhất được phép.
+   *
+   * Không đơn giản là nhân hệ số: 11 × 1.33 = 14.6, vẫn quá nhỏ với người
+   * mắt kém. Đặc tả nói rõ "bỏ hẳn cỡ xs/sm", nên cả hai cùng về 16.
+   *
+   * Giữ nguyên TÊN token (xs, sm) để component không phải sửa một dòng nào.
+   */
+  xs: 16,
+  sm: 16,
+  base: 20,     // 15 -> 20, chữ nội dung
+  md: 22,
+  lg: 28,
+  xl: 34,
+  display: 56,  // 40 -> 56, tỷ số trực tiếp
+} as const;
+
+/** Khoảng cách ×1.25 — tăng nhẹ thôi, xem giải thích ở trên */
+export const seniorSpacing = {
+  xs: 5,
+  sm: 10,
+  md: 15,
+  lg: 20,
+  xl: 30,
+  xxl: 40,
+  xxxl: 60,
+} as const;
+
+/**
+ * Vùng chạm tối thiểu.
+ *
+ * 44pt là chuẩn của Apple và Google cho người dùng thông thường.
+ * 56pt cho người lớn tuổi: tay run, ngón tay kém chính xác hơn, và bấm nhầm
+ * một nút trên app bóng đá thì họ thường không biết cách quay lại.
+ */
+export const TOUCH_TARGET = 44;
+export const SENIOR_TOUCH_TARGET = 56;
+
+/**
+ * Giới hạn phóng chữ theo cài đặt hệ điều hành.
+ *
+ * Người dùng có thể chỉnh cỡ chữ ở Cài đặt điện thoại, và React Native nhân
+ * thêm hệ số đó lên cỡ chữ của app.
+ *
+ *   Thường : chặn ở 1.3 — quá đó là bố cục vỡ, chữ tràn ra ngoài thẻ
+ *   Senior : cho tới 1.6 — bố cục senior vốn đã thiết kế cho chữ to
+ *
+ * ⚠️ ĐỪNG chặn ở 1.0. Người cần chữ to đã chỉnh ở hệ điều hành rồi; phớt lờ
+ * lựa chọn đó của họ là một lỗi tiếp cận nghiêm trọng.
+ */
+export const MAX_FONT_SCALE = 1.3;
+export const SENIOR_MAX_FONT_SCALE = 1.6;

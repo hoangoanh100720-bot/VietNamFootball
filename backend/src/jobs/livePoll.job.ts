@@ -33,6 +33,7 @@ import { logger } from '@/utils/logger';
 import { cacheDel } from '@/utils/cache';
 import { emitMatchEvent, emitMatchFinished, emitScoreUpdate } from '@/services/socket.service';
 import { notifyGoal, notifyMatchFinished } from '@/services/notification.service';
+import { rateMatch } from '@/services/rating/rating.service';
 
 /** Bộ đếm khoảng thời gian; null = đang không chạy */
 let timer: NodeJS.Timeout | null = null;
@@ -97,6 +98,24 @@ async function pollOnce(): Promise<void> {
           homeScore: match.home_score,
           awayScore: match.away_score,
         }).catch((err: unknown) => logger.warn('Push kết thúc trận lỗi: ' + String(err)));
+
+        /**
+         * ⭐ CHỐT ĐIỂM CẦU THỦ NGAY KHI TRẬN KẾT THÚC (ARCHITECTURE.md mục 12.3).
+         *
+         * Đây là thời điểm duy nhất mà mọi dữ liệu đã đầy đủ: tỷ số cuối cùng
+         * (để tính thắng/thua), sạch lưới hay không, và toàn bộ sự kiện.
+         *
+         * ⚠️ `void` + `.catch()` là CÓ CHỦ ĐÍCH, không phải cẩu thả:
+         * chấm điểm 40 cầu thủ mất vài trăm mili-giây. Nếu `await` ở đây thì
+         * vòng lặp theo dõi các trận KHÁC bị chặn lại chừng đó. Điểm cầu thủ
+         * chậm vài giây không ai để ý, nhưng tỷ số trực tiếp chậm thì có.
+         *
+         * Chấm điểm lỗi cũng KHÔNG được làm dừng vòng lặp — cùng lý do với
+         * thông báo đẩy ở trên.
+         */
+        void rateMatch(match.id, 'finalize').catch((err: unknown) =>
+          logger.warn('[Rating] Chấm điểm cuối trận lỗi: ' + String(err))
+        );
 
         logger.info('Trận kết thúc', {
           matchId: match.id,

@@ -13,3 +13,17 @@ coverage/
 google-services.json
 GoogleService-Info.plist
 serviceAccountKey.json
+
+# ---------------------------------------------------------------------------
+# DATABASE PGLITE — KHÔNG BAO GIỜ COMMIT
+# ---------------------------------------------------------------------------
+# Đây là file nhị phân của cơ sở dữ liệu nhúng, ~13MB và thay đổi ở MỌI lần
+# chạy server. Commit nó gây ba vấn đề:
+#   1. Repo phình to rất nhanh (git giữ lại mọi phiên bản của file nhị phân)
+#   2. Xung đột merge không thể giải quyết bằng tay
+#   3. Dữ liệu thử nghiệm của máy này đè lên máy khác khi pull
+# Dữ liệu dựng lại được bất cứ lúc nào bằng: cd backend && npm run db:reset
+backend/data/
+
+# Bản web xuất ra (sinh lại bằng: cd mobile && npx expo export --platform web)
+mobile/dist/

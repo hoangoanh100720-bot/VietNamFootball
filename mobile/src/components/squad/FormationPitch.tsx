@@ -35,6 +35,7 @@ import { useTheme } from '@/theme';
 import { AppText } from '@/components/common/Text';
 import { shortenName } from '@/utils/format';
 import type { LineupPlayer } from '@/types';
+import { RatingBadge, CardMarks, GoalMarks } from './RatingBadge';
 
 /** Tỷ lệ khung sân: cao gấp 1.45 lần rộng — gần đúng tỷ lệ sân thật (105x68m) */
 const PITCH_ASPECT = 1.45;
@@ -222,16 +223,32 @@ function PitchPlayer({
 }) {
   const t = useTheme();
 
+  /**
+   * ⭐ CÓ DỮ LIỆU ĐIỂM HAY KHÔNG?
+   *
+   * Cùng một component vẽ cho CẢ HAI phân đoạn của Tab Đội hình:
+   *
+   *   "Đội hình dự kiến"  -> GET /squad/current    -> KHÔNG có điểm
+   *   "Trận vừa đá"       -> GET /squad/last-match -> CÓ điểm, thẻ, bàn thắng
+   *
+   * Phân biệt bằng sự tồn tại của trường `minutes_played`: chỉ đội hình một
+   * trận đã đá mới có nó.
+   *
+   * ⚠️ Dùng `!== undefined` chứ KHÔNG dùng `!!player.minutes_played`:
+   * cầu thủ dự bị không vào sân có minutes_played = 0, mà 0 là giá trị
+   * "falsy" — cách viết tắt sẽ coi họ như không có dữ liệu trận đấu và
+   * badge "–" sẽ biến mất, dù lẽ ra phải hiện.
+   */
+  const hasMatchData = player.minutes_played !== undefined;
+
   const x = player.position_x ?? 50;
   const y = player.position_y ?? 50;
 
-  /** Màu áo theo tuyến — giúp nhận ra cấu trúc đội hình chỉ bằng liếc mắt */
-  const positionColors: Record<string, string> = {
-    GK: '#F59E0B', // thủ môn mặc áo khác màu, đúng luật bóng đá
-    DF: '#3B82F6',
-    MF: '#10B981',
-    FW: t.colors.accent,
-  };
+  /**
+   * Màu áo theo tuyến — lấy từ token, xem giải thích trong theme/colors.ts.
+   * Liếc mắt là nhận ra cấu trúc đội hình mà không cần đọc tên ai.
+   */
+  const positionColors = t.static.jersey;
 
   const Wrapper = onPress ? Pressable : View;
 
@@ -253,6 +270,23 @@ function PitchPlayer({
         width: 42,
       }}
     >
+      {/*
+        ⭐ ĐIỂM · BÀN THẮNG · THẺ PHẠT (ARCHITECTURE.md mục 5.3)
+
+        Chỉ hiện ở phân đoạn "Trận vừa đá". Ở "Đội hình dự kiến" thì chưa có
+        trận nào để chấm, hiện badge trống chỉ làm rối sơ đồ.
+
+        Thứ tự vẽ quan trọng: badge điểm và bàn thắng vẽ TRƯỚC áo số nhưng
+        nhờ position:'absolute' + top âm nên chúng nổi lên PHÍA TRÊN, không
+        đẩy áo số xuống.
+      */}
+      {hasMatchData && (
+        <>
+          <RatingBadge rating={player.rating ?? null} isMotm={player.is_motm ?? false} />
+          <GoalMarks goals={player.match_goals ?? 0} />
+        </>
+      )}
+
       {/* --- Áo số --- */}
       <View
         style={{
@@ -260,12 +294,19 @@ function PitchPlayer({
           height: 34,
           borderRadius: 17,
           backgroundColor: positionColors[player.position] ?? t.colors.accent,
+          /**
+           * Thẻ đỏ -> áo mờ 50%, báo hiệu cầu thủ ĐÃ RỜI SÂN.
+           * Đây là tín hiệu thứ hai bên cạnh màu thẻ, để người mù màu cũng
+           * nhận ra — đúng quy tắc "không truyền tin chỉ bằng màu".
+           */
+          opacity: (player.red_cards ?? 0) > 0 ? 0.5 : 1,
           alignItems: 'center',
           justifyContent: 'center',
           borderWidth: 2,
-          borderColor: 'rgba(255,255,255,0.9)',
+          // Viền trắng tách áo cầu thủ khỏi mặt cỏ — dùng token thay mã màu thô
+          borderColor: t.static.onDark.jerseyRing,
           // Bóng đổ ở đây là HỢP LÝ: cầu thủ thật sự "nổi" trên mặt sân
-          shadowColor: '#000',
+          shadowColor: t.static.black,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.35,
           shadowRadius: 3,
@@ -274,11 +315,16 @@ function PitchPlayer({
       >
         <AppText
           tabular
-          style={{ fontSize: 14, fontWeight: t.fontWeight.bold, color: '#FFFFFF' }}
+          style={{ fontSize: 14, fontWeight: t.fontWeight.bold, color: t.static.jersey.text }}
         >
           {player.shirt_number ?? '-'}
         </AppText>
       </View>
+
+      {/* --- Thẻ vàng / thẻ đỏ ở góc trên-phải áo số --- */}
+      {hasMatchData && (
+        <CardMarks yellowCards={player.yellow_cards ?? 0} redCards={player.red_cards ?? 0} />
+      )}
 
       {/* --- Băng đội trưởng --- */}
       {player.is_captain && (
@@ -295,7 +341,7 @@ function PitchPlayer({
             justifyContent: 'center',
           }}
         >
-          <AppText style={{ fontSize: 9, fontWeight: t.fontWeight.black, color: '#000' }}>
+          <AppText style={{ fontSize: 9, fontWeight: t.fontWeight.black, color: t.static.black }}>
             C
           </AppText>
         </View>

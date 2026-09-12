@@ -13,6 +13,7 @@
  * sơ đồ hiểu ngay cách bố trí, rồi mới đọc số liệu nếu quan tâm.
  */
 
+import { useState } from 'react';
 import { View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -26,6 +27,9 @@ import { FormationPitch, PitchLegend } from '@/components/squad/FormationPitch';
 import { squadApi } from '@/api/endpoints';
 import { formatEuro, POSITION_LABEL, shortenName } from '@/utils/format';
 import type { LineupPlayer } from '@/types';
+import { HeroBanner } from '@/components/decor';
+import { Seo } from '@/components/common/Seo';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
 
 export default function SquadTab() {
   const t = useTheme();
@@ -44,33 +48,118 @@ export default function SquadTab() {
     staleTime: 24 * 60 * 60 * 1000,
   });
 
+  /**
+   * ⭐ PHÂN ĐOẠN ĐANG XEM (ARCHITECTURE.md mục 5.3)
+   *
+   *   'current'    — đội hình dự kiến, chưa có điểm
+   *   'last-match' — trận vừa đá, CÓ điểm + thẻ trên đầu cầu thủ
+   */
+  const [segment, setSegment] = useState<'current' | 'last-match'>('current');
+
+  /**
+   * Truy vấn đội hình trận vừa đá.
+   *
+   * ⚠️ `enabled` chỉ bật khi người dùng THẬT SỰ chuyển sang phân đoạn đó.
+   * Tải sẵn cả hai ngay từ đầu sẽ tốn một request mà phần lớn người dùng
+   * không bao giờ dùng tới — họ mở tab này chủ yếu để xem đội hình dự kiến.
+   *
+   * React Query giữ cache nên chuyển qua lại giữa hai phân đoạn chỉ gọi mạng
+   * đúng một lần cho mỗi bên.
+   */
+  const lastMatchQuery = useQuery({
+    queryKey: ['squad', 'last-match'],
+    queryFn: squadApi.lastMatch,
+    enabled: segment === 'last-match',
+    staleTime: 60 * 60 * 1000, // điểm đã chốt thì không đổi nữa
+  });
+
   const onRefresh = () => {
-    void Promise.all([squadQuery.refetch(), valueQuery.refetch()]);
+    void Promise.all([squadQuery.refetch(), valueQuery.refetch(), lastMatchQuery.refetch()]);
   };
 
+  // Dữ liệu đang hiển thị, tuỳ phân đoạn
+  const showingLastMatch = segment === 'last-match';
+  const activeQuery = showingLastMatch ? lastMatchQuery : squadQuery;
+  const starting = showingLastMatch
+    ? (lastMatchQuery.data?.starting ?? [])
+    : (squadQuery.data?.starting ?? []);
+  const bench = showingLastMatch
+    ? (lastMatchQuery.data?.bench ?? [])
+    : (squadQuery.data?.bench ?? []);
+
+  /**
+   * KHỐI HERO — xem giải thích đầy đủ ở app/(tabs)/index.tsx.
+   * Màu chữ dùng staticColors vì nền hero luôn sẫm ở CẢ hai chế độ sáng/tối.
+   */
+  const hero = (
+    <HeroBanner minHeight={116}>
+      <AppText variant="h2" style={{ color: t.static.white }}>Đội hình ra sân</AppText>
+      <AppText variant="caption" style={{ color: t.static.riceGradient[0], marginTop: 2 }}>
+        Sơ đồ chiến thuật và danh sách dự bị
+      </AppText>
+    </HeroBanner>
+  );
+
   return (
-    <Screen onRefresh={onRefresh} refreshing={squadQuery.isRefetching}>
-      {/* =================== TIÊU ĐỀ =================== */}
-      <View style={{ paddingTop: t.spacing.md, paddingBottom: t.spacing.lg }}>
-        <AppText variant="h2">Đội hình ra sân</AppText>
-        <AppText variant="caption" tone="muted">
-          Sơ đồ chiến thuật và danh sách dự bị
-        </AppText>
-      </View>
+    <Screen header={hero} onRefresh={onRefresh} refreshing={squadQuery.isRefetching}>
+      {/* Thẻ SEO riêng của màn hình — xem components/common/Seo.tsx */}
+      <Seo
+        title="Đội hình ra sân"
+        description="Sơ đồ chiến thuật, danh sách đá chính và dự bị của Đội tuyển Việt Nam ở trận gần nhất, kèm tổng giá trị đội hình theo định giá chuyển nhượng."
+        path="/squad"
+      />
+      {/* Khoảng thở giữa hero và nội dung */}
+      <View style={{ height: t.spacing.lg }} />
+
+      {/* =================== THANH CHỌN PHÂN ĐOẠN =================== */}
+      <SegmentedControl
+        segments={[
+          { value: 'current', label: 'Đội hình dự kiến' },
+          {
+            value: 'last-match',
+            label: 'Trận vừa đá',
+            /**
+             * Chấm đỏ "Mới" khi có điểm mà người dùng chưa xem.
+             * Ở đây đơn giản hoá: hiện chấm khi đã tải được dữ liệu trận.
+             * Đặc tả gốc muốn chấm trong 48 giờ sau trận — cần lưu mốc "đã xem"
+             * vào bộ nhớ thiết bị, để làm ở bước sau.
+             */
+            showDot: lastMatchQuery.data != null && segment !== 'last-match',
+          },
+        ]}
+        value={segment}
+        onChange={setSegment}
+      />
+
+      {/* Tỷ số trận đang xem — chỉ hiện ở phân đoạn "Trận vừa đá" */}
+      {showingLastMatch && lastMatchQuery.data && (
+        <View style={{ alignItems: 'center', marginTop: t.spacing.md }}>
+          <AppText variant="label" tabular>
+            {lastMatchQuery.data.match.home_name} {lastMatchQuery.data.match.home_score}
+            {' – '}
+            {lastMatchQuery.data.match.away_score} {lastMatchQuery.data.match.away_name}
+          </AppText>
+          <AppText variant="caption" tone="faint">
+            Chạm vào cầu thủ để xem vì sao có điểm đó
+          </AppText>
+        </View>
+      )}
+
+      <View style={{ height: t.spacing.md }} />
 
       {/* =================== SƠ ĐỒ SÂN =================== */}
-      {squadQuery.isLoading ? (
+      {activeQuery.isLoading ? (
         <Skeleton width="100%" height={480} radius={t.radius.lg} />
-      ) : squadQuery.isError ? (
+      ) : activeQuery.isError ? (
         <ErrorState
-          message={squadQuery.error instanceof Error ? squadQuery.error.message : undefined}
-          onRetry={() => void squadQuery.refetch()}
+          message={activeQuery.error instanceof Error ? activeQuery.error.message : undefined}
+          onRetry={() => void activeQuery.refetch()}
         />
-      ) : squadQuery.data ? (
+      ) : starting.length > 0 ? (
         <>
           <FormationPitch
-            players={squadQuery.data.starting}
-            formation={squadQuery.data.formation}
+            players={starting}
+            formation={squadQuery.data?.formation ?? '—'}
             onPlayerPress={(id) => router.push(`/player/${id}`)}
           />
           <PitchLegend />
@@ -147,14 +236,20 @@ export default function SquadTab() {
           ) : null}
 
           {/* =================== DANH SÁCH DỰ BỊ =================== */}
-          <SectionHeader title={`Dự bị (${squadQuery.data.bench.length})`} />
+          {/*
+            Dùng biến `bench` đã tính sẵn ở đầu component, KHÔNG đọc thẳng
+            squadQuery.data.bench — vì ở phân đoạn "Trận vừa đá" thì danh sách
+            dự bị phải lấy từ lastMatchQuery (và cầu thủ vào sân thay người
+            cũng có điểm riêng của họ).
+          */}
+          <SectionHeader title={`Dự bị (${bench.length})`} />
 
           <Card padded={false}>
-            {squadQuery.data.bench.map((player, index) => (
+            {bench.map((player, index) => (
               <BenchRow
                 key={player.id}
                 player={player}
-                last={index === squadQuery.data!.bench.length - 1}
+                last={index === bench.length - 1}
                 onPress={() => router.push(`/player/${player.player_id}`)}
               />
             ))}

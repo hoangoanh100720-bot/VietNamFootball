@@ -14,3 +14,13 @@ export async function value(_req: Request, res: Response) {
   const data = await service.getSquadValue();
   return sendSuccess(res, data);
 }
+
+/**
+ * GET /squad/last-match
+ *
+ * Đội hình trận vừa đá, KÈM điểm cầu thủ và thẻ phạt.
+ * Dùng cho phân đoạn "Trận vừa đá" ở Tab Đội hình (ARCHITECTURE.md mục 5.3).
+ */
+export async function lastMatch(_req: Request, res: Response) {
+  return sendSuccess(res, await service.getLastMatchSquad());
+}

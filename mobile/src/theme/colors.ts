@@ -11,35 +11,63 @@
  *    KHÔNG viết mã màu thô (#fff, 'red', 'rgba(...)') trong component.
  *    Mọi màu PHẢI lấy từ file này.
  *
+ * ============================================================================
+ * 🎨 BẢNG MÀU: BA MÀU CHỦ ĐẠO LẤY TỪ HÌNH ẢNH VIỆT NAM
+ * ============================================================================
+ *
+ *   ① ĐỎ CỜ      #DA251D  — nền lá quốc kỳ
+ *   ② VÀNG SAO   #FFCD00  — ngôi sao năm cánh & bông lúa chín
+ *   ③ XANH TRE   #0A1A12 → #3E7D52  — thân tre già, luỹ tre làng
+ *
+ * Ba màu này không đứng ngang hàng nhau — đó là điều quan trọng nhất cần hiểu:
+ *
+ *   XANH TRE là NỀN (chiếm ~80% diện tích màn hình)
+ *   ĐỎ CỜ   là NHẤN (~15% — nút chính, tab đang chọn, tỷ số trực tiếp)
+ *   VÀNG SAO là ĐIỂM XUYẾT (~5% — huy chương, đội trưởng, thành tích)
+ *
+ * ⚠️ Ba màu mạnh chia đều diện tích sẽ thành biển quảng cáo, không phải thiết kế.
+ * Tỷ lệ 80/15/5 là thứ tạo nên cảm giác có chủ đích.
+ *
  * ----------------------------------------------------------------------------
- * NHỮNG QUYẾT ĐỊNH THIẾT KẾ (mỗi màu đều có LÝ DO, không chọn bừa)
+ * 📐 NHỮNG QUYẾT ĐỊNH THIẾT KẾ (mỗi màu đều có LÝ DO, không chọn bừa)
  *
  * 1. TỐI LÀM GỐC (dark-first)
  *    Bóng đá Việt Nam đá 19h30. Người dùng mở app buổi tối, thường trong
  *    phòng thiếu sáng. Nền tối đỡ chói mắt, đồng thời làm màu đỏ cờ và
- *    màu xanh sân cỏ nổi bật hơn hẳn.
+ *    màu vàng sao nổi bật hơn hẳn.
  *
- * 2. MỘT MÀU NHẤN DUY NHẤT: ĐỎ CỜ #DA251D
- *    Đây là màu đỏ chính thức trên quốc kỳ Việt Nam. Nhưng có một vấn đề:
- *    trên nền tối, #DA251D chỉ đạt độ tương phản ~4:1 với chữ nhỏ -> KHÔNG
+ * 2. ⭐ MÀU TRUNG TÍNH MANG SẮC XANH TRE (hue 150-155)
+ *    Đây là thay đổi lớn nhất so với bản trước (vốn dùng xanh navy).
+ *    Xám thuần (#888888) trông chết chóc, rẻ tiền. Xám pha xanh tre gợi
+ *    ngay hình ảnh luỹ tre làng và mặt cỏ sân bóng — vừa đúng chủ đề,
+ *    vừa khiến giao diện trông có chủ đích.
+ *
+ *    👉 Và nó biến màu thứ ba (xanh tre) thành MỘT HỆ THỐNG NỀN hoàn chỉnh
+ *       thay vì chỉ là một màu nhấn lẻ loi. Đó là cách dùng ba màu chủ đạo
+ *       mà không làm giao diện loè loẹt.
+ *
+ * 3. ĐỎ CỜ #DA251D CHỈ DÙNG CHO MẢNG LỚN
+ *    Trên nền tối, #DA251D chỉ đạt tương phản ~4:1 với chữ nhỏ -> KHÔNG
  *    đạt chuẩn tiếp cận WCAG (yêu cầu 4.5:1).
- *    -> Giải pháp: giữ #DA251D cho MẢNG LỚN (nút bấm, nền), và dùng bản
- *       SÁNG HƠN #FF5147 cho CHỮ và ICON ở chế độ tối.
+ *    -> Giải pháp: giữ #DA251D cho MẢNG LỚN (nút bấm, nền), dùng bản
+ *       SÁNG HƠN #FF5F52 cho CHỮ và ICON ở chế độ tối (đo được 6.0:1).
  *
- * 3. MÀU PHỤ: VÀNG SAO #FFCD00
- *    Cũng lấy từ quốc kỳ (ngôi sao vàng). Chỉ dùng cho ĐÚNG HAI việc:
- *    đánh dấu trận ĐANG ĐÁ và đánh dấu đội trưởng. Dùng bừa là mất tác dụng.
- *
- * 4. MÀU TRUNG TÍNH CÓ SẮC ĐỘ (hue 222 - xanh navy)
- *    Xám thuần (#888888) trông chết chóc, rẻ tiền. Xám pha chút xanh navy
- *    gợi cảm giác "sân vận động về đêm" và khiến giao diện có chủ đích.
+ * 4. VÀNG SAO #FFCD00 CHỈ DÙNG CHO ĐÚNG BỐN VIỆC
+ *    Trận ĐANG ĐÁ · đội trưởng · danh hiệu/thành tích · hoạ tiết bông lúa.
+ *    Dùng bừa là mất hẳn tác dụng đánh dấu.
+ *    ⚠️ Trên nền SÁNG, #FFCD00 gần như không đọc được (1.7:1) -> chế độ sáng
+ *       phải đổi sang vàng lúa sẫm #A87900 cho chữ.
  *
  * 5. NỀN SÁNG DẦN KHI NỔI LÊN (elevation)
  *    Ở chế độ tối, vật thể càng "nổi" thì nền càng SÁNG (không phải tối đi
  *    như nhiều người lầm tưởng). Bóng đổ gần như vô hình trên nền tối,
  *    nên ta dùng VIỀN 1px thay cho bóng.
  *
- * 6. KHÔNG BAO GIỜ TRUYỀN TIN CHỈ BẰNG MÀU
+ * 6. CHẾ ĐỘ SÁNG DÙNG NỀN "GIẤY DÓ" #F7F6EF, KHÔNG PHẢI TRẮNG XANH
+ *    Trắng ngả vàng gợi giấy dó, hạt lúa và nắng — ăn khớp với bảng màu.
+ *    Trắng ngả xanh (#F5F7FA) là mặc định của mọi app công nghệ, vô hồn.
+ *
+ * 7. KHÔNG BAO GIỜ TRUYỀN TIN CHỈ BẰNG MÀU
  *    Thắng/Hoà/Thua luôn kèm chữ "T"/"H"/"B", không chỉ tô màu.
  *    Khoảng 8% nam giới bị mù màu đỏ-lục — họ vẫn phải dùng được app.
  * ============================================================================
@@ -63,15 +91,22 @@ export interface ColorPalette {
   border: string;        // viền mảnh phân tách
   borderStrong: string;  // viền rõ (ô nhập liệu, nút viền)
 
-  // --- Màu nhấn ---
+  // --- ① Màu nhấn: ĐỎ CỜ ---
   accent: string;        // đỏ cờ — nút chính, thanh chọn
   accentText: string;    // bản sáng hơn, dùng cho CHỮ/ICON để đủ tương phản
   accentSoft: string;    // nền nhạt của màu nhấn (badge, vùng chọn)
   accentFg: string;      // chữ ĐẶT TRÊN nền accent
 
-  // --- Màu phụ ---
-  gold: string;          // vàng sao — LIVE, đội trưởng
-  goldSoft: string;
+  // --- ② Màu phụ: VÀNG SAO / BÔNG LÚA ---
+  gold: string;          // vàng sao — LIVE, đội trưởng, danh hiệu
+  goldSoft: string;      // nền nhạt của vàng
+  goldText: string;      // ⭐ vàng ĐỦ TƯƠNG PHẢN để làm màu CHỮ
+
+  // --- ③ Màu chủ đạo thứ ba: XANH TRE ---
+  bamboo: string;        // xanh lá tre — hoạ tiết, nhãn phụ, biểu đồ
+  bambooText: string;    // bản đủ tương phản để làm màu chữ
+  bambooSoft: string;    // nền nhạt xanh tre (badge, vùng nổi bật nhẹ)
+  bambooDeep: string;    // xanh tre sẫm nhất — dải gradient, chân trang
 
   // --- Màu ngữ nghĩa ---
   win: string;           // thắng
@@ -80,6 +115,23 @@ export interface ColorPalette {
   winSoft: string;
   drawSoft: string;
   loseSoft: string;
+
+  /**
+   * --- ⭐ THANG ĐIỂM CẦU THỦ (ARCHITECTURE.md mục 5.3) ---
+   *
+   *   ≥ 8.0  xuất sắc    7.0–7.9  tốt    6.0–6.9  trung bình    < 6.0  kém
+   *
+   * ⚠️ Màu CHỈ LÀ TÍN HIỆU PHỤ. Badge luôn hiện CON SỐ, nên người mù màu vẫn
+   * đọc được. Đây là quy tắc bắt buộc của dự án: không bao giờ truyền tin chỉ
+   * bằng màu.
+   *
+   * Bốn màu này cố ý KHÔNG trùng với win/draw/lose: điểm 5.5 không có nghĩa là
+   * "thua trận", và dùng chung màu sẽ khiến người dùng đọc nhầm ý nghĩa.
+   */
+  ratingExcellent: string;
+  ratingGood: string;
+  ratingAverage: string;
+  ratingPoor: string;
 
   // --- Sân cỏ (dùng vẽ sơ đồ chiến thuật) ---
   pitch: string;         // mặt cỏ
@@ -92,108 +144,253 @@ export interface ColorPalette {
 }
 
 /**
- * CHẾ ĐỘ TỐI — bảng màu chính của app.
+ * CHẾ ĐỘ TỐI — bảng màu chính của app. "Luỹ tre về đêm".
+ *
  * Các giá trị nền đi từ tối nhất (bg) tới sáng nhất (surfaceRaised),
  * đúng nguyên tắc "càng nổi càng sáng".
+ *
+ * Toàn bộ dải trung tính đều nằm ở sắc độ xanh tre (hue ~152) — đó là thứ
+ * khiến giao diện "có mùi tre" mà không cần tô xanh lá lên bất cứ đâu.
  */
 export const darkColors: ColorPalette = {
-  bg: '#0B1220',            // navy gần đen — nền sân vận động về đêm
-  surface: '#131C2E',       // sáng hơn nền một bậc
-  surfaceRaised: '#1B2539', // sáng hơn nữa
-  surfaceSunken: '#080D18', // tối hơn nền -> cảm giác lõm xuống
+  bg: '#0A1A12',            // xanh tre gần đen — thân tre già trong bóng tối
+  surface: '#102418',       // sáng hơn nền một bậc
+  surfaceRaised: '#173020', // sáng hơn nữa
+  surfaceSunken: '#06120B', // tối hơn nền -> cảm giác lõm xuống
 
-  text: '#F1F5F9',          // không dùng #FFFFFF thuần: trắng tinh trên nền tối
+  text: '#F2F7F3',          // không dùng #FFFFFF thuần: trắng tinh trên nền tối
                             // gây "chói mờ" (halation), đọc lâu mỏi mắt
-  textMuted: '#94A3B8',     // tương phản 7.2:1 trên bg — vẫn đọc tốt
-  textFaint: '#64748B',     // 4.6:1 — chỉ dùng cho chữ ≥ 13px
-  textInverse: '#0B1220',
+  textMuted: '#9DB4A5',     // tương phản 8.1:1 trên bg — vẫn đọc rất tốt
+  textFaint: '#6F8A78',     // 4.8:1 — đạt chuẩn, chỉ dùng cho chữ ≥ 13px
+  textInverse: '#0A1A12',
 
-  border: '#233046',        // vừa đủ thấy, không cắt vụn giao diện
-  borderStrong: '#33415C',
+  border: '#1F3C2B',        // vừa đủ thấy, không cắt vụn giao diện
+  borderStrong: '#2D5440',
 
-  accent: '#DA251D',        // đỏ cờ — dùng cho MẢNG LỚN
-  accentText: '#FF5147',    // đỏ sáng hơn — dùng cho CHỮ và ICON
-  accentSoft: '#2A1418',    // nền badge đỏ rất tối
+  accent: '#DA251D',        // ① đỏ cờ — dùng cho MẢNG LỚN
+  accentText: '#FF5F52',    // đỏ sáng hơn — dùng cho CHỮ và ICON (6.0:1)
+  accentSoft: '#2A1512',    // nền badge đỏ rất tối
   accentFg: '#FFFFFF',
 
-  gold: '#FFCD00',
-  goldSoft: '#2B2410',
+  gold: '#FFCD00',          // ② vàng sao — mảng lớn và hoạ tiết
+  goldSoft: '#2B2610',
+  goldText: '#FFCD00',      // trên nền tối, vàng gốc đã đạt 12:1 — dùng thẳng
+
+  bamboo: '#3E7D52',        // ③ xanh lá tre — hoạ tiết, đường viền trang trí
+  bambooText: '#6FBF8A',    // bản sáng để làm chữ trên nền tối (7.4:1)
+  bambooSoft: '#12301E',
+  bambooDeep: '#061009',
 
   win: '#22C55E',
-  draw: '#94A3B8',
+  draw: '#9DB4A5',          // dùng luôn màu chữ phụ -> hoà = "không màu"
   lose: '#F43F5E',          // hồng-đỏ, KHÁC hẳn đỏ cờ để không nhầm lẫn
-  winSoft: '#0F2A1B',
-  drawSoft: '#1E2837',
+  winSoft: '#0D2A19',
+  drawSoft: '#1A2E21',
   loseSoft: '#2C1420',
 
-  pitch: '#12331F',         // xanh cỏ tối, không chói
-  pitchStripe: '#163A24',
+  // Thang điểm cầu thủ — bốn bậc phân biệt rõ trên nền xanh tre sẫm
+  ratingExcellent: '#3DDC84',   // xanh lá sáng, nổi bật nhất
+  ratingGood: '#7ED957',        // xanh vàng
+  ratingAverage: '#FFC53D',     // vàng cam
+  ratingPoor: '#FF7A6B',        // đỏ cam nhạt (KHÔNG dùng đỏ cờ để khỏi nhầm)
+
+  pitch: '#123322',         // xanh cỏ tối, không chói
+  pitchStripe: '#163A28',
   pitchLine: 'rgba(255,255,255,0.22)',
 
-  overlay: 'rgba(3, 7, 18, 0.72)',
-  skeleton: '#1B2539',
+  overlay: 'rgba(4, 12, 8, 0.74)',
+  skeleton: '#173020',
 };
 
 /**
- * CHẾ ĐỘ SÁNG — không phải "đảo ngược" chế độ tối!
+ * CHẾ ĐỘ SÁNG — "giấy dó & nắng vàng". KHÔNG phải bản "đảo ngược" chế độ tối!
+ *
  * Đây là lỗi phổ biến nhất khi làm dark mode. Ở chế độ sáng:
- *   - Nền chuyển sang trắng ngà (không trắng tinh, đỡ chói)
+ *   - Nền chuyển sang trắng ngả VÀNG (gợi giấy dó, hạt lúa), không trắng xanh
  *   - Bóng đổ NHÌN THẤY được -> dùng bóng nhẹ thay vì chỉ viền
- *   - Màu nhấn giữ nguyên #DA251D vì trên nền sáng nó đủ tương phản (5.9:1)
+ *   - Vàng sao PHẢI sẫm lại thành vàng lúa chín, nếu không sẽ không đọc được
  */
 export const lightColors: ColorPalette = {
-  bg: '#F5F7FA',
+  bg: '#F7F6EF',            // giấy dó — trắng ngả vàng ấm
   surface: '#FFFFFF',
   surfaceRaised: '#FFFFFF',
-  surfaceSunken: '#EDF1F6',
+  surfaceSunken: '#EFEDE2',
 
-  text: '#0F1B2D',
-  textMuted: '#526180',
-  textFaint: '#7A8AA3',
+  text: '#11271A',          // xanh tre rất sẫm, không dùng đen thuần
+  textMuted: '#4A6353',     // 7.9:1 trên nền giấy dó
+  textFaint: '#6B8574',     // 4.6:1 — vừa đủ chuẩn
   textInverse: '#FFFFFF',
 
-  border: '#E2E8F0',
-  borderStrong: '#CBD5E1',
+  border: '#E0E2D4',
+  borderStrong: '#C4CDBA',
 
-  accent: '#DA251D',
-  accentText: '#C41E17',    // đỏ ĐẬM hơn cho chữ trên nền sáng (7.1:1)
-  accentSoft: '#FDECEA',
+  accent: '#DA251D',        // ① giữ nguyên đỏ cờ: trên nền sáng đủ tương phản
+  accentText: '#B81811',    // đỏ ĐẬM hơn cho chữ trên nền sáng (7.3:1)
+  accentSoft: '#FCEAE7',
   accentFg: '#FFFFFF',
 
-  gold: '#B88700',          // vàng đậm lại, vì #FFCD00 trên nền trắng không đọc được
-  goldSoft: '#FFF7DB',
+  gold: '#FFCD00',          // ② mảng vàng vẫn dùng vàng sao thật
+  goldSoft: '#FFF6D9',
+  goldText: '#A87900',      // ⚠️ vàng lúa chín — #FFCD00 làm chữ trên nền
+                            //    sáng chỉ đạt 1.7:1, hoàn toàn không đọc được
+
+  bamboo: '#2E7048',        // ③ xanh tre cho mảng và hoạ tiết
+  bambooText: '#1B5E3A',    // đủ tương phản làm chữ (6.1:1)
+  bambooSoft: '#E6F0E8',
+  bambooDeep: '#0F3D25',
 
   win: '#15803D',
-  draw: '#64748B',
+  draw: '#64766B',
   lose: '#BE123C',
   winSoft: '#DCFCE7',
-  drawSoft: '#F1F5F9',
+  drawSoft: '#EDF0EA',
   loseSoft: '#FFE4E9',
+
+  // Cùng bốn bậc, nhưng SẪM lại để đọc được trên nền giấy dó
+  ratingExcellent: '#0E7A3D',
+  ratingGood: '#3F7D20',
+  ratingAverage: '#9A6700',
+  ratingPoor: '#C2410C',
 
   pitch: '#1E7A3E',
   pitchStripe: '#238947',
   pitchLine: 'rgba(255,255,255,0.55)',
 
-  overlay: 'rgba(15, 27, 45, 0.45)',
-  skeleton: '#E7EDF4',
+  overlay: 'rgba(17, 39, 26, 0.45)',
+  skeleton: '#E9E7DB',
 };
 
 /**
- * Màu KHÔNG đổi theo chế độ sáng/tối.
- * Ví dụ nền thẻ tỷ số trực tiếp: luôn là dải gradient đỏ đậm để tạo điểm nhấn
- * mạnh nhất trong toàn app, dù người dùng đang ở chế độ nào.
+ * ============================================================================
+ * MÀU KHÔNG ĐỔI THEO CHẾ ĐỘ SÁNG/TỐI
+ * ============================================================================
+ *
+ * Dùng cho những mảng luôn có nền màu cố định. Nguyên tắc:
+ *
+ *   ⭐ NỀN CỐ ĐỊNH THÌ CHỮ TRÊN NÓ CŨNG PHẢI CỐ ĐỊNH.
+ *
+ * Ví dụ có thật đã gặp: thẻ trận đang đá luôn có nền gradient ĐỎ. Nếu chữ
+ * trên đó dùng colors.gold, thì ở chế độ sáng gold biến thành #A87900 —
+ * vàng sẫm đặt trên nền đỏ, gần như không đọc nổi. Lỗi này chỉ lộ ra khi
+ * chụp màn hình ở chế độ sáng, rất dễ lọt qua khâu kiểm thử.
  */
 export const staticColors = {
-  liveGradient: ['#8E1610', '#DA251D'] as const,
   /**
-   * Vàng dùng TRÊN nền gradient đỏ của thẻ trận đang đá.
-   * Không dùng colors.gold vì ở chế độ sáng nó là vàng sẫm #B88700 — đặt
-   * lên nền đỏ thì gần như không đọc được (phát hiện qua ảnh chụp chế độ
-   * sáng). Nền cố định thì chữ trên nó cũng phải cố định.
+   * Dải đỏ của thẻ trận ĐANG ĐÁ — điểm nhấn mạnh nhất toàn app.
+   * Đi từ đỏ sẫm sang đỏ cờ để tạo chiều sâu, không phẳng bẹt.
    */
+  liveGradient: ['#8E1610', '#DA251D'] as const,
+
+  /** Vàng dùng TRÊN nền gradient đỏ. Luôn là vàng sao thật, không đổi theo theme. */
   liveGold: '#FFCD00',
-  heroGradient: ['#0B1220', '#16233A'] as const,
+
+  /**
+   * Dải xanh tre của khối hero (đầu màn hình Giới thiệu).
+   * Từ xanh tre sẫm nhất lên xanh tre trung — như ánh sáng xuyên qua bụi tre.
+   */
+  heroGradient: ['#061009', '#123322'] as const,
+
+  /**
+   * ⭐ DẢI CỜ TỔ QUỐC — đỏ sang đỏ tươi, nền cho ngôi sao vàng.
+   * Dùng ở huy hiệu, khối thành tích và các mảng mang tính nghi lễ.
+   */
+  flagGradient: ['#B81811', '#DA251D', '#F03A2F'] as const,
+
+  /**
+   * ⭐ DẢI BÔNG LÚA — vàng lúa non sang vàng lúa chín.
+   * Dùng cho khối danh hiệu, huy chương, cột mốc thành tích.
+   */
+  riceGradient: ['#FFE68A', '#FFCD00', '#E0A800'] as const,
+
+  /**
+   * ⭐ DẢI THÂN TRE — dùng vẽ hoạ tiết cây tre trong components/decor.
+   * Ba chặng: phần tối trong bóng · thân tre · phần bắt nắng.
+   */
+  bambooGradient: ['#0F3D25', '#2E7048', '#5FA872'] as const,
+
+  /** Màu tuyệt đối — chỉ dùng khi thật sự cần, ưu tiên token theo theme */
   transparent: 'transparent',
   white: '#FFFFFF',
   black: '#000000',
+
+  /**
+   * ⭐ BỘ MÀU DÙNG TRÊN NỀN TỐI CỐ ĐỊNH (hero, thẻ trận đang đá, ảnh bìa).
+   *
+   * Trước khi có nhóm này, các màn hình phải viết thẳng 'rgba(255,255,255,0.7)'
+   * vào component — đúng thứ mà quy tắc "không viết mã màu thô" cấm. Tệ hơn,
+   * mỗi màn hình chọn một mức độ mờ khác nhau (0.6, 0.7, 0.75), khiến chữ phụ
+   * ở các màn hình đậm nhạt không đều nhau.
+   *
+   * Ba mức dưới đây tương ứng với ba cấp chữ của giao diện thường
+   * (text · textMuted · textFaint), nhưng dành cho nền tối cố định.
+   */
+  onDark: {
+    /** Chữ chính trên nền tối */
+    text: '#FFFFFF',
+    /** Chữ phụ — 72% độ đục, tương phản ~7:1 trên nền xanh tre sẫm */
+    textMuted: 'rgba(255,255,255,0.72)',
+    /** Chú thích rất nhẹ — chỉ dùng cho chữ từ 13px trở lên */
+    textFaint: 'rgba(255,255,255,0.55)',
+    /** Đường kẻ phân tách trên nền tối */
+    border: 'rgba(255,255,255,0.14)',
+    /** Viền trắng quanh chấm cầu thủ trên sơ đồ sân — tách khỏi mặt cỏ */
+    jerseyRing: 'rgba(255,255,255,0.9)',
+  },
+
+  /**
+   * ⭐ MÀU CỦA VẬT THỂ CÓ THẬT TRONG BÓNG ĐÁ — KHÔNG ĐỔI THEO CHẾ ĐỘ SÁNG/TỐI.
+   *
+   * Thẻ vàng của trọng tài là một tấm bìa màu vàng. Nó vàng ở ngoài nắng cũng
+   * như dưới đèn sân vận động. Đổi nó theo theme sẽ vô lý y như đổi màu quả
+   * bóng — người xem bóng đá nhận ra tấm thẻ NHỜ MÀU của nó.
+   *
+   * ⚠️ Đây cũng là lý do KHÔNG dùng colors.gold cho thẻ vàng: gold là vàng
+   * NGÔI SAO trên quốc kỳ (#FFCD00), và ở chế độ sáng nó sẫm lại thành
+   * #A87900 — lúc đó "thẻ vàng" trông như thẻ nâu.
+   */
+  card: {
+    /** Thẻ vàng — cảnh cáo */
+    yellow: '#EAB308',
+    /** Thẻ đỏ — truất quyền thi đấu */
+    red: '#DC2626',
+  },
+
+  /**
+   * ⭐ MÀU ÁO THEO TUYẾN — dùng vẽ chấm cầu thủ trên sơ đồ chiến thuật.
+   *
+   * 📐 Bốn màu tách bạch rõ để chỉ liếc mắt là nhận ra cấu trúc đội hình
+   * (3 hậu vệ? 4 tiền vệ?) mà không cần đọc tên ai.
+   *
+   * ⚠️ KHÔNG đổi theo chế độ sáng/tối: chấm cầu thủ luôn nằm trên MẶT CỎ, và
+   * mặt cỏ thì xanh ở cả hai chế độ. Đổi màu áo theo theme sẽ làm tương phản
+   * với cỏ thay đổi bất thường.
+   *
+   * 🥅 Thủ môn màu cam — đúng luật bóng đá thật: thủ môn phải mặc áo khác màu
+   * với đồng đội và với cầu thủ đối phương.
+   */
+  jersey: {
+    GK: '#F59E0B',
+    DF: '#3B82F6',
+    MF: '#10B981',
+    FW: '#DA251D',
+    /** Chữ số áo — luôn trắng vì bốn màu áo trên đều đủ sẫm */
+    text: '#FFFFFF',
+  },
+
+  /**
+   * Màu vẽ hoạ tiết trang trí (cờ, bông lúa, cây tre) — xem components/decor.
+   * Tách riêng khỏi ColorPalette vì đây là màu của MINH HOẠ, không phải màu
+   * của giao diện: chúng phải giữ đúng sắc thái ở cả hai chế độ, y như một
+   * bức tranh treo tường không đổi màu khi ta bật hay tắt đèn.
+   */
+  decor: {
+    flagRed: '#DA251D',
+    starYellow: '#FFCD00',
+    riceGold: '#E8B22A',
+    riceGrain: '#FFD84D',
+    bambooCulm: '#2E7048',
+    bambooLeaf: '#4E9B62',
+    bambooNode: '#1B5E3A',
+    inkOutline: '#0A1A12',
+  },
 };

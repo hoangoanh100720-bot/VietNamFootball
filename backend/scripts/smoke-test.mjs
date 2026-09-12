@@ -96,6 +96,148 @@ await check('GET /ranking/fifa', '/ranking/fifa?limit=5', (d) =>
   `VN hạng ${d.vietnam.rank} (${d.vietnam.change >= 0 ? '+' : ''}${d.vietnam.change}) — đợt ${d.snapshot_date?.slice(0, 10)}`
 );
 
+console.log('\n■ ĐIỂM CẦU THỦ (Tab Đội hình, mục 5.3)');
+
+await check('GET /squad/last-match', '/squad/last-match', (d) => {
+  const m = d.match;
+  const rated = d.starting.filter((p) => p.rating !== null).length;
+  const motm = d.starting.find((p) => p.is_motm);
+  return `${m.home_name} ${m.home_score}-${m.away_score} ${m.away_name} — ${rated}/${d.starting.length} có điểm` +
+    (motm ? `, MOTM: ${motm.short_name} (${motm.rating})` : '');
+});
+
+await check('GET /ratings/match/11', '/ratings/match/11', (d, meta) => {
+  const top = d.ratings[0];
+  return `${meta.count} cầu thủ, cao nhất ${top?.rating} (${top?.short_name ?? top?.full_name})`;
+});
+
+/**
+ * ⭐ PHÉP THỬ QUAN TRỌNG NHẤT CỦA ENGINE CHẤM ĐIỂM.
+ *
+ * Bảng giải thích "Vì sao 8.8?" chỉ đáng tin khi TỔNG CÁC DÒNG đúng bằng điểm
+ * cuối cùng. Lệch một chút thôi là người dùng cộng tay lại ra số khác, và mất
+ * niềm tin vào toàn bộ tính năng.
+ *
+ * Đây cũng là thứ FotMob/SofaScore không có — nên càng phải đúng.
+ */
+{
+  const res = await fetch(BASE + '/ratings/match/11');
+  const json = await res.json().catch(() => ({}));
+  const withBreakdown = (json?.data?.ratings ?? []).filter((r) => r.breakdown?.length > 0);
+
+  const lech = withBreakdown.filter((r) => {
+    const tong = Math.round(r.breakdown.reduce((s, b) => s + b.points, 0) * 10) / 10;
+    // Điểm bị kẹp vào [3,10] thì tổng có thể khác — bỏ qua hai biên đó
+    return r.rating > 3 && r.rating < 10 && tong !== r.rating;
+  });
+
+  if (withBreakdown.length > 0 && lech.length === 0) {
+    console.log(`  ✓ Bảng giải thích khớp điểm ở cả ${withBreakdown.length} cầu thủ`);
+    passed++;
+  } else if (withBreakdown.length === 0) {
+    console.log('  ✗ Không cầu thủ nào có bảng giải thích — engine chưa chạy?');
+    failed++;
+  } else {
+    console.log(`  ✗ ${lech.length} cầu thủ có tổng các dòng KHÁC điểm cuối cùng`);
+    failed++;
+  }
+}
+
+console.log('\n■ GIỚI THIỆU & THÀNH TÍCH (Tab 1)');
+
+await check('GET /team/overview', '/team/overview', (d) => {
+  const { profile, trophies, achievements } = d;
+  return `${profile.name} "${profile.nickname}" — ${trophies.champion} vô địch, ${achievements.length} mốc thành tích`;
+});
+
+await check('GET /team/achievements (lọc nổi bật)', '/team/achievements?highlight=true', (d, meta) =>
+  `${meta.count} thành tích nổi bật, mới nhất: ${d.achievements[0]?.title ?? '—'}`
+);
+
+/**
+ * ⚠️ PHÉP THỬ CHỐNG LỖI ĐÃ XẢY RA THẬT.
+ *
+ * Bản đầu của team.service.ts truy vấn bảng `teams` bằng env.VIETNAM_TEAM_ID
+ * (= 26, id bên api-football) trong khi id thật trong database là 1.
+ * Kết quả: API trả 404 dù dữ liệu có đủ.
+ *
+ * Phép thử này khoá lại điều kiện: hồ sơ phải có mã FIFA đúng là 'VIE'.
+ * Nếu ai đó lỡ tay quay về cách tra bằng id, phép thử sẽ bắt được ngay.
+ */
+{
+  const res = await fetch(BASE + '/team/overview');
+  const json = await res.json().catch(() => ({}));
+  const code = json?.data?.profile?.fifa_code;
+
+  if (code === 'VIE') {
+    console.log('  ✓ Tra đội theo mã FIFA (không phụ thuộc id tự sinh)');
+    passed++;
+  } else {
+    console.log(`  ✗ Hồ sơ trả về mã FIFA "${code}", mong đợi "VIE"`);
+    failed++;
+  }
+}
+
+console.log('\n■ TRỢ LÝ AI & HỒ KEY GEMINI');
+
+// Endpoint này vừa báo AI có bật hay không, vừa cho biết còn bao nhiêu key
+// khả dụng. Với dự án dùng nhiều key xoay vòng, đây là chỗ chẩn đoán ĐẦU TIÊN
+// khi thấy tính năng AI đột nhiên im lặng.
+await check('GET /ai/status', '/ai/status', (d) => {
+  const pool = d.key_pool;
+  // Hiện cả số key BỊ LOẠI (403/401) chứ không chỉ số key sẵn sàng —
+  // một key hỏng nằm im trong hồ là thứ rất dễ bị bỏ quên.
+  const dead = pool?.disabled ?? 0;
+  const keys = pool
+    ? `${pool.available}/${pool.total} key sẵn sàng` + (dead > 0 ? `, ${dead} BỊ LOẠI` : '')
+    : 'chưa có hồ key';
+  const mode = d.gemini_enabled ? 'Gemini BẬT' : 'dùng mô hình Elo dự phòng';
+  return `${mode} — ${d.model} — ${keys}`;
+});
+
+/**
+ * 🔐 PHÉP THỬ BẢO MẬT — quan trọng hơn vẻ ngoài của nó.
+ *
+ * /ai/status là endpoint CÔNG KHAI. Nó báo tình trạng các key Gemini, nên
+ * tuyệt đối không được để lọt key nguyên văn ra ngoài. Mọi key phải hiện
+ * dưới dạng đã che: "AQ.Ab8…ztiw".
+ *
+ * Cách kiểm: key Gemini thật dài trên 30 ký tự và KHÔNG chứa dấu "…".
+ * Nên nếu bắt gặp một label dài mà không có dấu ba chấm -> chắc chắn đã lộ.
+ */
+{
+  const res = await fetch(BASE + '/ai/status');
+  const raw = await res.text();
+  const leaked = /"label"\s*:\s*"[^"…]{25,}"/.test(raw);
+
+  if (leaked) {
+    console.log('  ✗ Key Gemini BỊ LỘ nguyên văn trong /ai/status');
+    failed++;
+  } else {
+    console.log('  ✓ Key Gemini được che đúng cách (không lộ nguyên văn)');
+    passed++;
+  }
+}
+
+console.log('\n■ TÌM KIẾM AI (hybrid search)');
+
+await check('GET /search/stats', '/search/stats', (d) =>
+  `${d.documents} tài liệu, ${d.chunks} đoạn (${d.embedded} đã nhúng, ${d.pending} chờ) — máy vector: ${d.vector_engine}`
+);
+
+/**
+ * ⭐ TÌM BẰNG CHUỖI KHÔNG DẤU — phép thử quan trọng nhất của tìm kiếm tiếng Việt.
+ *
+ * Gõ "doi tuyen quoc gia" phải ra được "Đội tuyển Quốc gia". Trượt phép thử
+ * này nghĩa là hàm removeAccents hoặc cột content_norm đang có vấn đề —
+ * và người dùng Việt Nam gõ không dấu rất nhiều.
+ */
+await check('GET /search (gõ không dấu)', '/search?q=doi%20tuyen%20quoc%20gia&limit=3&debug=true', (d, meta) => {
+  if (!d.hits.length) return '⚠️ kho tri thức trống — chạy: npm run crawl -- <url>';
+  const top = d.hits[0];
+  return `${meta.count} kết quả trong ${meta.took_ms}ms — cao nhất: "${top.title.slice(0, 38)}" (điểm ${top.score.toFixed(2)})`;
+});
+
 console.log('\n■ XỬ LÝ LỖI (mong đợi API TỪ CHỐI)');
 
 /** Ngược với check(): lần này API PHẢI trả lỗi thì mới coi là đạt */

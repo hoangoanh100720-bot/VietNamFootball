@@ -9,6 +9,49 @@
  * LỢI ÍCH THẤY NGAY: gõ `match.` là editor liệt kê mọi trường có thật.
  * Gõ nhầm `match.homeScore` (backend trả `home_score`) là báo đỏ NGAY khi gõ,
  * thay vì tới lúc chạy app mới thấy "undefined".
+ *
+ * ============================================================================
+ * 📖 BỐN QUY ƯỚC PHẢI NHỚ KHI ĐỌC/SỬA FILE NÀY
+ * ============================================================================
+ *
+ * 1️⃣  TÊN TRƯỜNG VIẾT snake_case, KHÔNG PHẢI camelCase
+ *
+ *     home_score  ✅   homeScore  ❌
+ *
+ *     Vì đó là tên CỘT trong database, và backend trả thẳng ra không đổi tên.
+ *     Chuyển đổi qua lại giữa hai kiểu viết chỉ đẻ thêm một tầng dễ sai mà
+ *     chẳng được gì. Riêng `accessToken`/`refreshToken` là ngoại lệ — chúng
+ *     không phải cột database mà do tầng xác thực tự sinh ra.
+ *
+ * 2️⃣  `| null` KHÁC HẲN `?` (dấu hỏi)
+ *
+ *     logo_url: string | null    → trường LUÔN CÓ MẶT, nhưng có thể rỗng
+ *     logo_url?: string          → trường CÓ THỂ KHÔNG TỒN TẠI
+ *
+ *     Database trả NULL cho ô trống, nên gần như mọi chỗ ở đây dùng `| null`.
+ *     Nhờ vậy TypeScript BẮT BUỘC bạn xử lý trường hợp rỗng:
+ *
+ *         <Image source={{ uri: team.logo_url }} />           ❌ báo đỏ
+ *         {team.logo_url && <Image source={{ uri: ... }} />}  ✅
+ *
+ *     Đây chính là thứ chặn lỗi "hiện ô ảnh vỡ" trước khi nó lên tới người dùng.
+ *
+ * 3️⃣  NGÀY GIỜ LUÔN LÀ `string`, KHÔNG PHẢI `Date`
+ *
+ *     JSON không có kiểu ngày tháng. Server gửi chuỗi ISO 8601:
+ *     "2026-09-12T19:30:00.000Z". Muốn định dạng thì dùng các hàm trong
+ *     utils/format.ts — ĐỪNG tự gọi new Date() rải rác khắp nơi, vì múi giờ
+ *     là chỗ sai lầm kinh điển nhất khi làm app thể thao.
+ *
+ * 4️⃣  SỬA Ở ĐÂY THÌ PHẢI SỬA CẢ BACKEND
+ *
+ *     File này và `backend/src/types/index.ts` là HAI BẢN SAO của cùng một
+ *     hợp đồng. TypeScript KHÔNG tự kiểm tra chúng có khớp nhau không, vì
+ *     đây là hai dự án riêng biệt.
+ *
+ *     👉 Đổi tên một trường ở backend mà quên sửa ở đây: app vẫn biên dịch
+ *        được, nhưng lúc chạy sẽ nhận `undefined`. Đây là loại lỗi tốn nhiều
+ *        thời gian nhất để tìm ra — nên hãy sửa cả hai file cùng lúc.
  */
 
 // ---------------------------------------------------------------------------
@@ -192,6 +235,64 @@ export interface LineupPlayer {
   current_club: string | null;
   caps: number;
   goals: number;
+
+  /**
+   * ==========================================================================
+   * ⭐ DỮ LIỆU MỘT TRẬN CỤ THỂ — CHỈ CÓ Ở `GET /squad/last-match`
+   * ==========================================================================
+   *
+   * Tất cả đều `?` (không bắt buộc) vì cùng một kiểu này phục vụ HAI API:
+   *
+   *   GET /squad/current     -> đội hình dự kiến, KHÔNG có mấy trường này
+   *   GET /squad/last-match  -> trận vừa đá, CÓ đầy đủ
+   *
+   * 💡 Vì sao không tách làm hai interface riêng?
+   * Vì component <FormationPitch> vẽ cho cả hai phân đoạn. Tách kiểu thì phải
+   * viết hai component gần như giống hệt nhau, hoặc thêm một tầng union type
+   * rườm rà. Dùng trường không bắt buộc là đánh đổi đúng ở đây.
+   *
+   * ⚠️ Đổi lại, component PHẢI kiểm tra sự tồn tại trước khi dùng — xem cách
+   * `hasMatchData` được tính trong FormationPitch.tsx.
+   */
+
+  /** Số phút thi đấu. Có mặt trường này = đây là dữ liệu một trận đã đá */
+  minutes_played?: number;
+  /** Điểm 0–10 do engine chấm. null = đá dưới 10 phút, app hiện "–" */
+  rating?: number | null;
+  /** 'computed' (engine tính) · 'provider' (nhà cung cấp) · 'manual' (admin sửa) */
+  rating_source?: string | null;
+  /** Cầu thủ xuất sắc nhất trận */
+  is_motm?: boolean;
+  /** Bảng giải thích "Vì sao 8.8?" — xem RatingBreakdownItem */
+  rating_breakdown?: RatingBreakdownItem[];
+  /** Số bàn ghi TRONG TRẬN NÀY (khác `goals` là tổng bàn cả sự nghiệp) */
+  match_goals?: number;
+  match_assists?: number;
+  yellow_cards?: number;
+  red_cards?: number;
+  /** Phút bị thay ra. null = đá hết trận */
+  subbed_out_at?: number | null;
+}
+
+/**
+ * Một dòng trong bảng giải thích điểm.
+ *
+ * ⭐ ĐÂY LÀ THỨ FOTMOB VÀ SOFASCORE KHÔNG CÓ: họ cho một con số và người dùng
+ * phải tin. App này giải thích được từng điểm cộng/trừ.
+ *
+ * Khớp với RatingBreakdownItem trong backend/src/services/rating/engine.ts.
+ */
+export interface RatingBreakdownItem {
+  /** Mã sự kiện, ví dụ 'goal' — dùng để dịch sang ngôn ngữ khác nếu cần */
+  code: string;
+  /** Nhãn tiếng Việt, ví dụ "Bàn thắng" */
+  label: string;
+  /** Số lần xảy ra. 1 với các mục không đếm được (điểm khởi đầu, thắng/thua) */
+  count: number;
+  /** Hệ số cho MỘT lần */
+  unit: number;
+  /** count × unit — tổng các dòng LUÔN bằng đúng điểm cuối cùng */
+  points: number;
 }
 
 export interface Squad {
@@ -282,4 +383,142 @@ export interface MatchEventPayload {
 export interface MatchFinishedPayload {
   matchId: number;
   finalScore: { home: number; away: number };
+}
+
+// ---------------------------------------------------------------------------
+// TÌM KIẾM AI (kho tri thức)
+// ---------------------------------------------------------------------------
+
+/**
+ * Một kết quả tìm kiếm trong kho tri thức.
+ *
+ * Khớp với kiểu SearchHit ở backend/src/modules/search/search.service.ts.
+ * ⚠️ Sửa một bên thì phải sửa bên kia — TypeScript không tự kiểm tra được
+ * sự khớp nhau giữa hai dự án riêng biệt.
+ */
+export interface SearchHit {
+  chunk_id: number;
+  document_id: number;
+  /** Tiêu đề tài liệu chứa đoạn này */
+  title: string;
+  /** Đoạn văn bản khớp với câu hỏi */
+  content: string;
+  /** 'crawl' | 'ocr' | 'history' | 'faq' ... */
+  source: string;
+  /** URL gốc — null với tài liệu nhập tay */
+  source_url: string | null;
+  /** Điểm cuối cùng sau khi trộn vector + từ khoá, thang 0-1 */
+  score: number;
+  /**
+   * Điểm riêng của từng cách tìm.
+   * Chỉ có giá trị thật khi gọi API với debug=true; bình thường backend
+   * trả về 0 để payload gửi xuống app gọn hơn.
+   */
+  vector_score: number;
+  keyword_score: number;
+}
+
+/** Sức khoẻ kho tri thức — dùng để báo cho người dùng biết khi kho còn trống */
+export interface SearchStats {
+  documents: number;
+  chunks: number;
+  embedded: number;
+  /** Số đoạn chưa nhúng vector. > 0 nghĩa là cần chạy `npm run index` */
+  pending: number;
+  driver: string;
+  /** 'pgvector' (nhanh) hoặc 'javascript' (dev) */
+  vector_engine: string;
+  embedding_model: string;
+  embedding_dim: number;
+}
+
+// ---------------------------------------------------------------------------
+// HỒ SƠ ĐỘI TUYỂN & THÀNH TÍCH (Tab 1 — Giới thiệu)
+// ---------------------------------------------------------------------------
+
+/**
+ * Mức thành tích tại một giải đấu.
+ *
+ * ⚠️ Danh sách này phải khớp CHÍNH XÁC ràng buộc CHECK của cột
+ * `achievements.result` (migration 002). Thêm giá trị mới ở đây mà quên sửa
+ * migration thì database sẽ từ chối dòng dữ liệu đó — và ngược lại, thêm ở
+ * database mà quên ở đây thì TypeScript sẽ báo đỏ nhầm chỗ.
+ */
+export type AchievementResult =
+  | 'champion'
+  | 'runner_up'
+  | 'third_place'
+  | 'semi_final'
+  | 'quarter_final'
+  | 'round_of_16'
+  | 'group_stage'
+  | 'qualified';
+
+export interface Achievement {
+  id: number;
+  competition: string;
+  /** Năm diễn ra giải, ví dụ 2024 */
+  edition_year: number;
+  result: AchievementResult;
+  /** Tiêu đề hiển thị sẵn, ví dụ "Vô địch AFF Cup 2018" */
+  title: string;
+  description: string | null;
+  /** Nước/khu vực đăng cai */
+  host: string | null;
+  image_url: string | null;
+  /** true = được chọn hiện ở "Tủ danh hiệu" nổi bật đầu tab */
+  is_highlight: boolean;
+}
+
+export interface TeamProfile {
+  team_id: number;
+  name: string;
+  fifa_code: string | null;
+  logo_url: string | null;
+  /** "Những chiến binh Sao Vàng" */
+  nickname: string | null;
+  federation: string | null;
+  /** ['AFC', 'AFF'] */
+  confederations: string[];
+  home_stadium: string | null;
+  intro_text: string;
+  cover_image_url: string | null;
+  /** Thứ hạng FIFA CAO NHẤT từng đạt — số càng NHỎ càng giỏi */
+  best_fifa_rank: number | null;
+  best_fifa_rank_date: string | null;
+}
+
+/** Bảng đếm danh hiệu — mỗi trường là một con số to trên giao diện */
+export interface TrophyCabinet {
+  champion: number;
+  runner_up: number;
+  third_place: number;
+  /** Số lần lọt sâu ở đấu trường châu lục (Asian Cup, World Cup) */
+  continental_best: number;
+  total: number;
+}
+
+/** Phản hồi của GET /team/overview — gộp cả ba khối cho Tab Giới thiệu */
+export interface TeamOverview {
+  profile: TeamProfile;
+  trophies: TrophyCabinet;
+  achievements: Achievement[];
+}
+
+/** Phản hồi của GET /squad/last-match — đội hình một trận đã đá, kèm điểm */
+export interface LastMatchSquad {
+  match: {
+    id: number;
+    kickoff_at: string;
+    home_name: string;
+    away_name: string;
+    home_code: string | null;
+    away_code: string | null;
+    home_score: number;
+    away_score: number;
+    /** Việt Nam đá sân nhà trong trận này? */
+    is_home: boolean;
+  };
+  starting: LineupPlayer[];
+  bench: LineupPlayer[];
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================================
+  SITEMAP.XML — BẢN ĐỒ TRANG CHO CÁC CỖ MÁY TÌM KIẾM
+  ============================================================================
+
+  📍 ĐỂ LÀM GÌ? Liệt kê mọi trang bạn MUỐN được lập chỉ mục, kèm mức độ quan
+  trọng và tần suất thay đổi. Google vẫn tự tìm được trang qua các liên kết,
+  nhưng có sitemap thì:
+    • Trang mới được phát hiện nhanh hơn nhiều
+    • Trang nằm sâu, ít link trỏ tới cũng không bị bỏ sót
+    • Bạn nói rõ được trang nào quan trọng hơn trang nào
+
+  📐 Ý NGHĨA CÁC THẺ:
+    <priority>   0.0 đến 1.0 — mức quan trọng TƯƠNG ĐỐI GIỮA CÁC TRANG CỦA
+                 CHÍNH BẠN. Nó KHÔNG nâng thứ hạng so với site khác.
+                 Đặt tất cả bằng 1.0 là vô nghĩa: khi mọi trang đều quan
+                 trọng nhất thì chẳng trang nào quan trọng nhất cả.
+    <changefreq> gợi ý tần suất nội dung đổi. Google coi đây là THAM KHẢO,
+                 nó vẫn tự quyết định theo lịch sử thay đổi thật của trang.
+    <lastmod>    ngày sửa gần nhất. Thẻ này Google THẬT SỰ dùng tới — nhưng
+                 chỉ khi bạn ghi trung thực. Khai bừa "sửa hôm nay" cho mọi
+                 trang là cách nhanh nhất để Google ngừng tin file sitemap này.
+
+  ⚙️ VỚI TRANG CÓ NHIỀU NỘI DUNG ĐỘNG (chi tiết từng trận, từng cầu thủ),
+     hãy sinh sitemap tự động từ database thay vì viết tay như file này.
+     Gợi ý: thêm một endpoint GET /sitemap.xml ở backend, truy vấn bảng
+     matches và players rồi kết xuất ra đúng định dạng dưới đây.
+
+  ⚠️ ĐỔI TOÀN BỘ doituyenvietnam.vn THÀNH TÊN MIỀN THẬT CỦA BẠN.
+  ============================================================================
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Trang chủ: tỷ số trực tiếp + lịch thi đấu -> quan trọng nhất, đổi liên tục -->
+  <url>
+    <loc>https://doituyenvietnam.vn/</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Đội hình ra sân: đổi trước mỗi trận -->
+  <url>
+    <loc>https://doituyenvietnam.vn/squad</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Danh sách cầu thủ: đổi theo mỗi đợt triệu tập -->
+  <url>
+    <loc>https://doituyenvietnam.vn/players</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Dự đoán & bảng xếp hạng: đổi theo từng trận -->
+  <url>
+    <loc>https://doituyenvietnam.vn/ai</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

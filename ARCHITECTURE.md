@@ -31,6 +31,7 @@ Các lần bạn gửi yêu cầu, tất cả đã được gộp vào tài li�
 | 3 | 11/09 | Kế hoạch phân công 5 dev | A4 |
 | 4 | 11/09 | Tên app là **"Đội tuyển Việt Nam"**; **không làm game**; gộp tất cả thành một app | Toàn bộ tài liệu |
 | 5 | 11/09 | Duyệt bổ sung vào kế hoạch: **dev mobile + 7 việc chưa có người nhận**, **BXH bảng đấu**, **danh sách triệu tập** | A4.1, 2.1–2.2, 5.8 |
+| 6 | 12/09 | Chốt giao diện: **phần giới thiệu tự chuyển sau 5–7 giây**; **cả 5 tab nằm ở thanh dưới**; **Trợ lý AI nằm trong tab Thống kê** dạng khung kéo ngang | 4.1, 4.2, 5.6–5.7 |
 
 ## A2. Yêu cầu gốc của bạn (lần 1)
 
@@ -185,7 +186,7 @@ Các lần bạn gửi yêu cầu, tất cả đã được gộp vào tài li�
 ## A6. Câu hỏi cần bạn chốt
 
 1. **DEV 6 (Mobile)**: tuyển 1 hay 2 người? Nếu chưa tuyển được thì DEV 5 kiêm khoảng 50% trong thời gian đầu (A4.1).
-2. **5 tab** theo đúng danh sách lần 1 (Giới thiệu · Trận đấu · Đội hình · Cầu thủ · Thống kê), còn **Cài đặt mở từ ảnh đại diện góc phải** như App Store — bạn đồng ý không? Bản 2.0 từng để Cài đặt làm tab 5 và đưa Thống kê vào trong chi tiết trận.
+2. ✅ **Đã chốt 12/09** — không cần trả lời nữa: cả **5 tab nằm ở thanh dưới** (Giới thiệu · Trận đấu · Đội hình · Cầu thủ · Thống kê), **Cài đặt** mở từ ảnh đại diện góc phải, **Trợ lý AI** nằm trong tab Thống kê (mục 4.2, 5.6).
 3. **Điểm hiển thị** trên đầu cầu thủ: dùng điểm do **engine của app tính** (giải thích được từng điểm) hay điểm của **nhà cung cấp dữ liệu**? Tài liệu đang chọn engine (`RATING_PRIMARY_SOURCE=engine`).
 4. **Tỷ số khi đang đá**: giữ **1 phút/lần** như kế hoạch, hay nhanh hơn (12–15 giây) cho bằng đối thủ?
 5. Cloud **GCP hay AWS**?
@@ -319,9 +320,10 @@ Mỗi hợp đồng có **một chủ sở hữu**, được viết thành code 
 ┌──────────────────────────────────────────────────────────────────────┐
 │                  MOBILE APP — "Đội tuyển Việt Nam"                   │
 │  Splash ─► Giới thiệu đội tuyển ─► (Đăng nhập | Khách) ─► 5 tab      │
-│  ┌──────────┬──────────┬──────────┬──────────┬──────────┐  [👤][✨] │
-│  │Giới thiệu│ Trận đấu │ Đội hình │ Cầu thủ  │ Thống kê │  Cài đặt, │
-│  └──────────┴──────────┴──────────┴──────────┴──────────┘  Trợ lý AI│
+│  ┌──────────┬──────────┬──────────┬──────────┬──────────┐      [👤] │
+│  │Giới thiệu│ Trận đấu │ Đội hình │ Cầu thủ  │ Thống kê │   Cài đặt │
+│  └──────────┴──────────┴──────────┴──────────┴──────────┘           │
+│                       tab Thống kê: ① Thống kê ↔ ② Trợ lý AI        │
 │  ThemeProvider (sáng/tối + theme sự kiện + Senior mode)              │
 └───────────────┬───────────────────────────────┬──────────────────────┘
           HTTPS REST /api/v1               WSS Socket.IO · SSE (chat AI)
@@ -526,6 +528,7 @@ Migration theo nguyên tắc **expand → migrate → contract** để deploy kh
 
 Quy tắc:
 
+- 🆕 **Tự chuyển slide sau 5–7 giây** (mặc định 6 giây), có thanh tiến trình mảnh chạy ở đầu màn để người dùng biết sắp chuyển. Chạm hoặc vuốt là **dừng tự chuyển** ngay — người dùng đang tự điều khiển thì app không giành quyền. Slide cuối không tự chuyển, chờ bấm **Bắt đầu**.
 - Có nút **Bỏ qua** ở mọi slide; vuốt ngang **và** nút "Tiếp" (không bắt người dùng chỉ vuốt).
 - Khi admin đổi nội dung, backend tăng `version` → app hiện lại giới thiệu một lần.
 - Tôn trọng "Giảm chuyển động" của hệ điều hành (`AccessibilityInfo.isReduceMotionEnabled`): tắt hoạt ảnh splash, chuyển slide không trượt.
@@ -535,7 +538,7 @@ Quy tắc:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Giới thiệu (Large Title)                        [✨]   [👤]      │ ◄ Trợ lý AI · Cài đặt
+│ Giới thiệu (Large Title)                                [👤]      │ ◄ Cài đặt (ảnh đại diện)
 │                          (nội dung tab)                          │
 ├────────────┬────────────┬────────────┬────────────┬──────────────┤
 │    🛡️      │   ⚽ •     │    ▦       │    👥      │     📊       │
@@ -544,7 +547,7 @@ Quy tắc:
    đang chọn: icon tô đặc + màu nhấn + chữ đậm      • = chấm đỏ khi có trận LIVE
 ```
 
-5 tab theo **đúng danh sách bạn gửi ở lần 1** (A2). Bản 2.0 từng để Cài đặt làm tab 5; nay Cài đặt mở từ **ảnh đại diện góc phải**, giống nút tài khoản của App Store (component `AccountButton` đã có ✅) — chờ bạn chốt (A6 câu 2).
+✅ **Đã chốt 12/09**: cả **5 tab nằm ở thanh dưới**, đúng danh sách bạn gửi ở lần 1 (A2). **Cài đặt** mở từ **ảnh đại diện góc phải**, giống nút tài khoản của App Store (component `AccountButton` đã có ✅). **Trợ lý AI** không còn là nút riêng trên header mà là **khung thứ hai trong tab Thống kê** (mục 5.6).
 
 | Tab / nút | Route | Icon (Ionicons, chọn / thường) | Nội dung |
 |---|---|---|---|
@@ -552,9 +555,8 @@ Quy tắc:
 | 2. Trận đấu | `(tabs)/matches` | `football` / `football-outline` | Đang diễn ra · Sắp diễn ra · Kết quả |
 | 3. Đội hình | `(tabs)/squad` | `grid` / `grid-outline` | Sơ đồ ra sân, **điểm + thẻ trên đầu cầu thủ** sau trận, danh sách triệu tập |
 | 4. Cầu thủ | `(tabs)/players` | `people` / `people-outline` | Danh sách, tìm kiếm, lọc theo vị trí, hồ sơ, giá trị |
-| 5. Thống kê | `(tabs)/stats` | `stats-chart` / `stats-chart-outline` | Thông số sau trận, cầu thủ xuất sắc nhất, BXH cầu thủ (mục 5.6) |
+| 5. Thống kê | `(tabs)/stats` | `stats-chart` / `stats-chart-outline` | **Hai khung kéo ngang**: ① Thống kê sau trận · ② Trợ lý AI (mục 5.6–5.7) |
 | Cài đặt | `settings/index` | ảnh đại diện, góc phải header | Hồ sơ, theme, người lớn tuổi, thông báo, tài khoản (mục 5.5) |
-| Trợ lý AI | `assistant` | `sparkles`, góc phải header | Hỏi đáp về đội tuyển (mục 5.7) |
 
 Đặc điểm "giống App Store":
 
@@ -587,11 +589,10 @@ mobile/
 │   │   ├── matches.tsx               # 🔄 Tab 2 — Trận đấu (chuyển từ index.tsx cũ)
 │   │   ├── squad.tsx                 # 🔄 Tab 3 — Đội hình + điểm cầu thủ sau trận
 │   │   ├── players.tsx               # Tab 4 — Cầu thủ
-│   │   └── stats.tsx                 # 🆕 Tab 5 — Thống kê (thông số sau trận, BXH cầu thủ)
+│   │   └── stats.tsx                 # 🆕 Tab 5 — 2 khung kéo ngang: ① Thống kê · ② Trợ lý AI (5.6)
 │   │   # Cài đặt không còn là tab: app/settings/index.tsx, mở từ ảnh đại diện góc phải
 │   ├── match/[id].tsx                # 🔄 Chi tiết trận: 5 tab con (mục 5.2)
 │   ├── player/[id].tsx               # Hồ sơ cầu thủ
-│   ├── assistant.tsx                 # 🆕 Trợ lý AI (mở từ nút ✨ trên header, mục 5.7)
 │   ├── achievements.tsx              # 🆕 Toàn bộ dòng thời gian thành tích
 │   └── settings/
 │       ├── profile.tsx               # 🆕 Chỉnh sửa hồ sơ
@@ -600,7 +601,7 @@ mobile/
 │       ├── display.tsx               # 🆕 Sáng/Tối + Giao diện người lớn tuổi
 │       ├── notifications.tsx         # 🆕 Bật/tắt từng loại thông báo
 │       └── delete-account.tsx        # 🆕 Xoá tài khoản (yêu cầu của App Store/Google Play)
-│   # ❌ (tabs)/ai.tsx bị bỏ: dự đoán AI chuyển vào match/[id], BXH FIFA chuyển vào Tab Giới thiệu, chat AI ở assistant.tsx
+│   # ❌ (tabs)/ai.tsx bị bỏ: dự đoán AI chuyển vào match/[id], BXH FIFA chuyển vào Tab Giới thiệu, chat AI là khung ② của tab Thống kê
 ├── src/
 │   ├── api/                          # axios instance + endpoints (thêm team, themes, users)
 │   ├── components/
@@ -609,7 +610,7 @@ mobile/
 │   │   ├── home/                     # 🆕 TeamHero, TrophyCabinet, AchievementTimeline, NextMatchCard
 │   │   ├── match/                    # LiveScoreCard, FixtureItem, EventTimeline 🆕, StatCompareBar 🆕
 │   │   ├── squad/                    # FormationPitch 🔄, RatingBadge 🆕, CardBadge 🆕, BenchList
-│   │   ├── ai/                       # PredictionDonut, FifaRankTable
+│   │   ├── ai/                       # PredictionDonut, FifaRankTable, AssistantFrame 🆕, SuggestionChips 🆕
 │   │   ├── settings/                 # 🆕 SettingsRow, ThemeCard, AvatarPicker, DisplayModeSwitch
 │   │   └── effects/                  # 🆕 Fireworks, FallingBlossoms, Confetti (theme sự kiện)
 │   ├── hooks/
@@ -808,7 +809,20 @@ Nút "Lưu" chỉ sáng khi có thay đổi; rời màn khi chưa lưu → hộp
 
 **Xoá tài khoản**: nhập lại mật khẩu (tài khoản Google/Facebook: mã OTP) → xác nhận 2 bước → xoá vĩnh viễn (CASCADE: token, thiết bị, cài đặt, ảnh đại diện, lịch sử chat AI).
 
-### 5.6. 🆕 Tab 5 — Thống kê (Thông số sau trận)
+### 5.6. 🆕 Tab 5 — Thống kê & Trợ lý AI (hai khung kéo ngang)
+
+Tab này gồm **hai khung xếp cạnh nhau, vuốt ngang để đổi** — kiểu thẻ kéo ngang của App Store: khung ① **Thống kê sau trận**, khung ② **Trợ lý AI**. Mép khung bên cạnh **ló ra một chút** để người dùng biết còn khung nữa, dưới cùng có **chấm chỉ trang** chạm được.
+
+```
+        ← vuốt ngang để đổi khung →
+┌────────────────────────────────┐ ┌──
+│ ① THỐNG KÊ                     │ │ ②   ◄ khung kế bên ló ~16px
+│   (nội dung bên dưới)          │ │ ✨
+└────────────────────────────────┘ └──
+               ● ○                      ◄ chấm chỉ trang, chạm được
+```
+
+**Khung ① — Thống kê sau trận**
 
 ```
 ┌───────────────────────────────────┐
@@ -836,13 +850,17 @@ Nút "Lưu" chỉ sáng khi có thay đổi; rời màn khi chưa lưu → hộp
 | "Vì sao 8.3?" | Bottom sheet đọc `rating_breakdown`: "Khởi đầu 6,0 · 2 bàn thắng +2,0 · 1 đường chuyền quyết định +0,2 · 3 sút trúng đích +0,3 · Đội thắng +0,3 · Thẻ vàng −0,5 = **8,3**" |
 | Trạng thái điểm | Nhãn "Tạm tính" khi `ratings_status = provisional`; nhãn "Đã cập nhật" khi bị đính chính |
 | BXH cầu thủ | Chỉ xếp hạng điểm trung bình khi đá ≥ 90 phút trong kỳ; bằng điểm thì ngang hạng (mục 12.5) |
+| Kéo khung | `react-native-pager-view` (hoặc `FlatList` ngang `pagingEnabled`): mỗi khung giữ nguyên trạng thái khi vuốt qua lại, không tải lại dữ liệu |
+| Vào thẳng khung ② | Đường dẫn sâu `(tabs)/stats?frame=assistant`; nút "Hỏi AI về trận này" ở Chi tiết trận mở đúng khung này (mục 5.7) |
 | Senior mode | Tab này ẩn (3 tab); thông số chính xem trong chi tiết trận dưới dạng câu: "Việt Nam kiểm soát bóng 58%, sút 14 lần" |
 
-### 5.7. 🆕 Trợ lý AI — "Hỏi đáp Đội tuyển"
+### 5.7. 🆕 Khung ② — Trợ lý AI "Hỏi đáp Đội tuyển"
+
+Nằm ngay trong tab Thống kê (mục 5.6): từ khung Thống kê vuốt sang trái là tới, không phải màn hình riêng.
 
 ```
 ┌───────────────────────────────────┐
-│ ✨ Hỏi đáp Đội tuyển          [✕] │
+│ ✨ Hỏi đáp Đội tuyển              │
 │ Gợi ý: [Tỷ số trận gần nhất?]     │
 │        [Ai ghi nhiều bàn nhất?]   │
 │        [VN đứng thứ mấy bảng?]    │
@@ -859,7 +877,8 @@ Nút "Lưu" chỉ sáng khi có thay đổi; rời màn khi chưa lưu → hộp
 └───────────────────────────────────┘
 ```
 
-- Mở từ nút ✨ ở góc phải header mọi tab, và nút **"Hỏi AI về trận này"** trong Chi tiết trận (gửi kèm `matchId`).
+- Vào bằng cách **vuốt sang khung ②** trong tab Thống kê, hoặc nút **"Hỏi AI về trận này"** ở Chi tiết trận (mở tab Thống kê đúng khung ②, gửi kèm `matchId`).
+- Vuốt qua khung khác rồi quay lại: hội thoại **giữ nguyên**, không mất câu đang gõ, không tải lại lịch sử.
 - Cần đăng nhập để lưu lịch sử và tính hạn mức; khách thấy màn mời đăng nhập. Hết hạn mức ngày → báo rõ "Hôm nay bạn đã hỏi đủ, mai hỏi tiếp nhé".
 - Câu trả lời luôn kèm thời điểm cập nhật dữ liệu; không trả lời về kèo cá cược (mục 10.6).
 - Senior mode: chữ to, câu trả lời ngắn, nút "Đọc to" luôn hiện.
@@ -1945,7 +1964,7 @@ Bộ **150 câu hỏi mẫu tiếng Việt** (tỷ số, BXH, cầu thủ, đi�
 
 ### 10.8. API & giao diện
 
-API: mục 8.5. Giao diện: nút ✨ trên header mọi tab, và nút "Hỏi AI về trận này" trong chi tiết trận (mục 5.7).
+API: mục 8.5. Giao diện: **khung ② của tab Thống kê** và nút "Hỏi AI về trận này" trong chi tiết trận (mục 5.6–5.7).
 
 ---
 
@@ -2273,7 +2292,7 @@ Kế hoạch gộp "Đội hình & Thông tin chi tiết cầu thủ" thành m�
 | **2. Trận đấu** | `/matches/live` · `/matches/upcoming?cursor` · `/matches/results?cursor` · `/matches/:id` · `/matches/:id/live` · `/matches/:id/h2h` · `/competitions/:id/standings` + socket | **Redis `live:*`** → PG | live: `s-maxage=5`; lịch: `60` |
 | **3. Đội hình** | `/squad/current` · `/squad/last-match` · `/matches/:id/lineups` · `/squads/current` | PG + `rating:*` | `300`; khi có trận: `30` |
 | **4. Cầu thủ** | `/players?position&sort&cursor&fields` · `/players/:id` · `/players/:id/clubs` · `/players/:id/ratings` · `/players/:id/value-history` | PG replica | `300` |
-| **5. Thống kê** | `/stats/overview` · `/stats/matches` · `/matches/:id/stats` · `/matches/:id/ratings` · `/matches/:id/ratings/:playerId/explain` · `/stats/players/leaderboard` | PG replica + `lb:*` | chưa chốt: `60`; đã chốt: `86400` + ETag |
+| **5. Thống kê** (khung ①) | `/stats/overview` · `/stats/matches` · `/matches/:id/stats` · `/matches/:id/ratings` · `/matches/:id/ratings/:playerId/explain` · `/stats/players/leaderboard` | PG replica + `lb:*` | chưa chốt: `60`; đã chốt: `86400` + ETag |
 | Cài đặt | `/users/me` · `/users/me/settings` · `/themes` · `/themes/active` | PG | `private` |
 | Trợ lý AI | `/ai/*` | PG + LLM | `private, no-store` |
 
@@ -2419,7 +2438,7 @@ Dùng **FCM topic** cho thông báo chung, nên một lệnh gửi tới đượ
 
 | Sprint | DEV 1 | DEV 2 | DEV 3 | DEV 4 | DEV 5 | DEV 6 (Mobile) |
 |---|---|---|---|---|---|---|
-| **S0** (1 tuần) | `entrypoints/` + `APP_ROLE`, docker-compose, CI | **Xác minh độ phủ dữ liệu ĐTVN** của nhà cung cấp, chọn gói | Chốt bảng quy tắc chấm điểm (12.2) — ✅ đã lưu thành ruleset `2026.1` trong DB | ✅ **Xong**: migration `002`–`005` + dữ liệu mẫu (12/09/2026) | Khung OpenAPI + test | Chốt 5 tab (A6 câu 2) |
+| **S0** (1 tuần) | `entrypoints/` + `APP_ROLE`, docker-compose, CI | **Xác minh độ phủ dữ liệu ĐTVN** của nhà cung cấp, chọn gói | Chốt bảng quy tắc chấm điểm (12.2) — ✅ đã lưu thành ruleset `2026.1` trong DB | ✅ **Xong**: migration `002`–`005` + dữ liệu mẫu (12/09/2026) | Khung OpenAPI + test | ✅ Đã chốt 5 tab + vị trí Trợ lý AI (12/09); dựng thanh tab + khung kéo ngang |
 | **S1** | BullMQ + Redis ×2 | Adapter + normalizer + dữ liệu mẫu ghi lại | Engine (hàm thuần) + test bảng | Google/Facebook, refresh xoay vòng | API tab 1–2, cache, ETag | Splash + giới thiệu + tab bar 5 tab |
 | **S2** | Adapter LLM, tool đọc, chat SSE | **Polling 60 giây** + Redis live + `match.updated` | Nối `match.updated`, chốt T+0 / T+15′ / T+60′ | OTP quên mật khẩu, hồ sơ, cài đặt, ảnh đại diện | API tab 3–4, socket | Tab Giới thiệu, Trận đấu, chi tiết trận |
 | **S3** | Bộ nhớ hội thoại, RAG | Đội hình T−90′, VAR, ➕ triệu tập, ➕ BXH bảng đấu | Đính chính + lưu vết; ➕ Theme phía server | ➕ Xoá tài khoản, ➕ Apple, index < 50ms | API tab 5, ➕ API BXH bảng đấu + triệu tập, ➕ FCM topic | Tab Đội hình (điểm + thẻ trên đầu, ➕ Triệu tập), Tab Cầu thủ, ➕ BXH bảng đấu |

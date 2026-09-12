@@ -5,21 +5,16 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-
     "//_userInterfaceStyle": "automatic = app tự đổi sáng/tối theo cài đặt điện thoại",
     "userInterfaceStyle": "automatic",
-
     "//_scheme": "Cần cho expo-router: mở app bằng đường dẫn vietnamfootball://match/12",
     "scheme": "vietnamfootball",
-
     "newArchEnabled": true,
-
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B1220"
+      "backgroundColor": "#0A1A12"
     },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vietnamfootball.app",
@@ -30,11 +25,10 @@
         }
       }
     },
-
     "android": {
       "package": "com.vietnamfootball.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0B1220",
+        "backgroundColor": "#0A1A12",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -43,16 +37,42 @@
       "//_cleartext": "Android 9+ chặn HTTP theo mặc định; bật cờ này để chạy được với backend dev http://192.168.x.x:5000",
       "usesCleartextTraffic": true
     },
-
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "static",
+      "//_output": "static = xuất ra file HTML tĩnh cho TỪNG đường dẫn. BẮT BUỘC để làm SEO: mặc định (single) chỉ sinh một file index.html, bot tìm kiếm sẽ không thấy nội dung các trang con.",
+      "name": "Đội tuyển Việt Nam — Lịch thi đấu & Tỷ số trực tiếp",
+      "shortName": "ĐT Việt Nam",
+      "lang": "vi",
+      "themeColor": "#DA251D",
+      "backgroundColor": "#0A1A12",
+      "description": "Theo dõi tỷ số trực tiếp, lịch thi đấu, đội hình ra sân và bảng xếp hạng FIFA của Đội tuyển Bóng đá Quốc gia Việt Nam. Cập nhật từng phút, có phân tích bằng AI.",
+      "display": "standalone",
+      "orientation": "portrait"
     },
-
-    "plugins": ["expo-router", "expo-secure-store", "expo-image"],
-
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-image"
+    ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "backgroundColor": "#0A1A12",
+    "//_backgroundColor": "Nền gốc của app = colors.bg chế độ tối trong theme/colors.ts. Lệch màu sẽ thấy một cú chớp lúc mở app.",
+    "//_seo": "Ba trường dưới phục vụ ASO (tối ưu hiển thị trên App Store/Google Play) và SEO cho bản web.",
+    "description": "Theo dõi tỷ số trực tiếp, lịch thi đấu, đội hình ra sân và bảng xếp hạng FIFA của Đội tuyển Bóng đá Quốc gia Việt Nam. Cập nhật từng phút, có phân tích bằng AI.",
+    "primaryColor": "#DA251D",
+    "keywords": [
+      "bóng đá",
+      "đội tuyển Việt Nam",
+      "tỷ số trực tiếp",
+      "lịch thi đấu",
+      "AFF Cup",
+      "SEA Games",
+      "xếp hạng FIFA"
+    ],
+    "//_keywords": "Dùng cho ASO trên cửa hàng ứng dụng. ⚠️ KHÔNG nhồi các từ này vào thẻ meta keywords của web — Google đã bỏ dùng thẻ đó từ 2009."
   }
 }

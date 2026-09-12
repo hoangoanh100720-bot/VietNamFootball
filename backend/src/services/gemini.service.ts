@@ -14,7 +14,7 @@
  *                       trước khi lưu, vì database có ràng buộc CHECK.
  */
 
-import { getGeminiClient, isGeminiEnabled, PREDICTION_SCHEMA } from '@/config/gemini';
+import { runWithKeyRotation, isGeminiEnabled, PREDICTION_SCHEMA } from '@/config/gemini';
 import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 import { AppError } from '@/utils/AppError';
@@ -124,8 +124,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * Ném AppError nếu thất bại sau tất cả các lần thử.
  */
 export async function generatePrediction(ctx: PredictionContext): Promise<PredictionResult> {
-  const client = getGeminiClient();
-  if (!client) throw AppError.serviceUnavailable('Chưa cấu hình GEMINI_API_KEY');
+  // Hồ key rỗng -> không có gì để gọi. Ném lỗi sớm để ai.service chuyển
+  // ngay sang mô hình thống kê Elo, thay vì chờ hết 3 lần thử vô ích.
+  if (!isGeminiEnabled()) {
+    throw AppError.serviceUnavailable(
+      'Chưa cấu hình key Gemini. Điền GEMINI_API_KEYS (hoặc GEMINI_API_KEY) vào .env ở gốc repo.'
+    );
+  }
 
   const prompt = buildPrompt(ctx);
   logger.debug('Prompt gửi Gemini dài ' + prompt.length + ' ký tự');
@@ -138,20 +143,29 @@ export async function generatePrediction(ctx: PredictionContext): Promise<Predic
       // Promise.race: cái nào xong trước thì lấy cái đó.
       // Nếu Gemini chậm hơn GEMINI_TIMEOUT_MS thì ta bỏ cuộc, không treo request.
       const response = await Promise.race([
-        client.models.generateContent({
-          model: env.GEMINI_MODEL,
-          contents: prompt,
-          config: {
-            temperature: env.GEMINI_TEMPERATURE, // 0 = luôn giống nhau, 1 = sáng tạo
-            maxOutputTokens: env.GEMINI_MAX_OUTPUT_TOKENS,
-            responseMimeType: 'application/json',
-            responseSchema: PREDICTION_SCHEMA as never,
-          },
-        }),
+        runWithKeyRotation('predict', (client) =>
+          client.models.generateContent({
+            model: env.GEMINI_MODEL,
+            contents: prompt,
+            config: {
+              temperature: env.GEMINI_TEMPERATURE, // 0 = luôn giống nhau, 1 = sáng tạo
+              maxOutputTokens: env.GEMINI_MAX_OUTPUT_TOKENS,
+              responseMimeType: 'application/json',
+              responseSchema: PREDICTION_SCHEMA as never,
+            },
+          })
+        ),
         sleep(env.GEMINI_TIMEOUT_MS).then(() => {
           throw new Error('Gemini quá thời gian chờ ' + env.GEMINI_TIMEOUT_MS + 'ms');
         }),
       ]);
+
+      // runWithKeyRotation trả null khi MỌI key đều đang bị phạt nghỉ.
+      // Ném lỗi để vòng lặp retry bên ngoài chờ backoff rồi thử lại —
+      // lúc đó có thể đã có key hết hạn nghỉ và quay lại hàng đợi.
+      if (!response) {
+        throw new Error('Mọi key Gemini đều đang hết lượt hoặc đang nghỉ');
+      }
 
       const text = response.text;
       if (!text) throw new Error('Gemini trả về nội dung rỗng');

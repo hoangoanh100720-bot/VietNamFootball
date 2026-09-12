@@ -169,6 +169,23 @@ export async function query<T = Record<string, unknown>>(
 }
 
 /**
+ * Lấy ĐÚNG MỘT dòng — trả về null khi không có dòng nào.
+ *
+ * Vì sao cần hàm riêng thay vì viết .rows[0] ở mọi nơi?
+ * Vì .rows[0] có kiểu là T (TypeScript tin rằng nó luôn tồn tại), trong khi
+ * thực tế nó có thể là undefined. Hàm này khai báo thẳng kiểu trả về là
+ * T | null, buộc nơi gọi phải xử lý trường hợp không tìm thấy — lỗi
+ * "cannot read property of undefined" bị chặn ngay từ lúc biên dịch.
+ */
+export async function queryOne<T = Record<string, unknown>>(
+  text: string,
+  params: unknown[] = []
+): Promise<T | null> {
+  const { rows } = await query<T>(text, params);
+  return rows[0] ?? null;
+}
+
+/**
  * Chạy một SCRIPT SQL gồm NHIỀU câu lệnh (phân tách bởi dấu ;).
  *
  * Vì sao cần hàm riêng? query() ở trên chỉ chạy được MỘT câu lệnh

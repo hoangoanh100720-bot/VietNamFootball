@@ -5,7 +5,11 @@
  *
  * BỐ CỤC:
  *   1. Thẻ dự đoán trận sắp tới: biểu đồ vòng + bài nhận định + yếu tố then chốt
- *   2. Bảng xếp hạng FIFA, làm nổi bật dòng của Việt Nam
+ *   2. ⭐ Ô hỏi đáp kho tri thức — giao diện của API /search (tìm kiếm lai
+ *      vector + từ khoá). Đặt ngay sau bài nhận định vì đó đúng là lúc người
+ *      đọc nảy ra câu hỏi tiếp theo.
+ *   3. Bảng xếp hạng FIFA, làm nổi bật dòng của Việt Nam
+ *      (vòng nguyệt quế bằng bông lúa ôm lấy thứ hạng Việt Nam)
  *
  * ----------------------------------------------------------------------------
  * ⭐ NGUYÊN TẮC ĐẠO ĐỨC KHI HIỂN THỊ KẾT QUẢ AI
@@ -29,8 +33,11 @@ import { Card, SectionHeader, Badge } from '@/components/common/Card';
 import { EmptyState, ErrorState, Skeleton } from '@/components/common/States';
 import { TeamLogo } from '@/components/common/TeamLogo';
 import { PredictionDonut } from '@/components/ai/PredictionDonut';
+import { KnowledgeSearch } from '@/components/ai/KnowledgeSearch';
 import { aiApi, matchesApi, rankingApi } from '@/api/endpoints';
 import { formatDateTime, formatRelative } from '@/utils/format';
+import { HeroBanner, RiceWreath } from '@/components/decor';
+import { Seo } from '@/components/common/Seo';
 
 export default function AiTab() {
   const t = useTheme();
@@ -86,15 +93,29 @@ export default function AiTab() {
     void Promise.all([upcomingQuery.refetch(), predictionQuery.refetch(), rankingQuery.refetch()]);
   };
 
+  /**
+   * KHỐI HERO — xem giải thích đầy đủ ở app/(tabs)/index.tsx.
+   * Màu chữ dùng staticColors vì nền hero luôn sẫm ở CẢ hai chế độ sáng/tối.
+   */
+  const hero = (
+    <HeroBanner minHeight={116}>
+      <AppText variant="h2" style={{ color: t.static.white }}>Dự đoán & Xếp hạng</AppText>
+      <AppText variant="caption" style={{ color: t.static.riceGradient[0], marginTop: 2 }}>
+        Phân tích bằng trí tuệ nhân tạo
+      </AppText>
+    </HeroBanner>
+  );
+
   return (
-    <Screen onRefresh={onRefresh} refreshing={predictionQuery.isRefetching}>
-      {/* =================== TIÊU ĐỀ =================== */}
-      <View style={{ paddingTop: t.spacing.md, paddingBottom: t.spacing.lg }}>
-        <AppText variant="h2">Dự đoán & Xếp hạng</AppText>
-        <AppText variant="caption" tone="muted">
-          Phân tích bằng trí tuệ nhân tạo
-        </AppText>
-      </View>
+    <Screen header={hero} onRefresh={onRefresh} refreshing={predictionQuery.isRefetching}>
+      {/* Thẻ SEO riêng của màn hình — xem components/common/Seo.tsx */}
+      <Seo
+        title="Dự đoán AI & Xếp hạng FIFA"
+        description="Dự đoán kết quả trận đấu bằng trí tuệ nhân tạo dựa trên điểm FIFA, phong độ và lịch sử đối đầu, kèm bảng xếp hạng FIFA cập nhật."
+        path="/ai"
+      />
+      {/* Khoảng thở giữa hero và nội dung */}
+      <View style={{ height: t.spacing.lg }} />
 
       {/* =================== THẺ DỰ ĐOÁN =================== */}
       {upcomingQuery.isLoading || predictionQuery.isLoading ? (
@@ -270,8 +291,54 @@ export default function AiTab() {
         </View>
       )}
 
+      {/* =================== HỎI ĐÁP KHO TRI THỨC =================== */}
+      {/*
+        Giao diện của API /search — tìm kiếm lai vector + từ khoá.
+        Đặt NGAY SAU thẻ dự đoán và TRƯỚC bảng xếp hạng là có chủ đích:
+        người vừa đọc xong bài nhận định của AI thường nảy ra câu hỏi tiếp
+        ("đội mình vô địch AFF mấy lần rồi?"). Ô hỏi đáp nằm đúng chỗ đó.
+      */}
+      <SectionHeader title="Hỏi đáp kho tri thức" />
+      <KnowledgeSearch />
+
       {/* =================== BẢNG XẾP HẠNG FIFA =================== */}
       <SectionHeader title="Bảng xếp hạng FIFA" />
+
+      {/*
+        ⭐ VÒNG NGUYỆT QUẾ BẰNG BÔNG LÚA ÔM LẤY THỨ HẠNG VIỆT NAM.
+
+        Đây là chỗ DUY NHẤT trong tab này dùng hoạ tiết bông lúa, và đó là
+        chủ ý: bông lúa mang nghĩa GHI CÔNG (xem components/decor/RiceStalk.tsx).
+        Thứ hạng FIFA đúng là một thành tích — nên nó xứng đáng được đóng khung.
+
+        Rải bông lúa lên mọi con số trong app thì biểu tượng mất hết ý nghĩa,
+        chỉ còn là hoa văn. Dùng đúng một chỗ thì mỗi lần thấy nó, người dùng
+        hiểu ngay: "đây là điều đáng tự hào".
+      */}
+      {rankingQuery.data?.vietnam && (
+        <View style={{ alignItems: 'center', marginBottom: t.spacing.lg }}>
+          <RiceWreath size={62}>
+            <AppText
+              tabular
+              style={{
+                fontSize: t.fontSize.xl,
+                fontWeight: t.fontWeight.black,
+                color: t.colors.goldText,
+              }}
+            >
+              {rankingQuery.data.vietnam.rank}
+            </AppText>
+            <AppText variant="overline" tone="muted">
+              Hạng FIFA
+            </AppText>
+          </RiceWreath>
+
+          {/* Điểm số đặt dưới vòng nguyệt quế, cỡ nhỏ hơn — thứ yếu hơn thứ hạng */}
+          <AppText variant="caption" tone="faint" tabular style={{ marginTop: 2 }}>
+            {rankingQuery.data.vietnam.points} điểm
+          </AppText>
+        </View>
+      )}
 
       {rankingQuery.isLoading ? (
         <Skeleton width="100%" height={300} radius={t.radius.lg} />

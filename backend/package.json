@@ -14,7 +14,11 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/smoke-test.mjs",
     "db:live": "tsx src/db/setLive.ts",
-    "test:devices": "node scripts/devices-test.mjs"
+    "test:devices": "node scripts/devices-test.mjs",
+    "crawl": "tsx src/cli/crawl.ts",
+    "ocr": "tsx src/cli/ocr.ts",
+    "index": "tsx src/cli/index.ts",
+    "test:rating": "npm run build --silent && node scripts/rating-test.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",

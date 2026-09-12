@@ -37,6 +37,7 @@ import { matchesApi } from '@/api/endpoints';
 import { useLiveScore } from '@/hooks/useLiveScore';
 import { formatDateTime, formatNumber } from '@/utils/format';
 import type { MatchEvent } from '@/types';
+import { Seo } from '@/components/common/Seo';
 
 export default function MatchDetailScreen() {
   const t = useTheme();
@@ -82,6 +83,25 @@ export default function MatchDetailScreen() {
   if (detailQuery.isLoading) {
     return (
       <Screen>
+        {/*
+          ⭐ THẺ SEO DỰ PHÒNG — đừng bỏ qua phần này.
+
+          🐛 LỖI CÓ THẬT ĐÃ PHÁT HIỆN KHI KIỂM TRA FILE HTML XUẤT RA:
+          Bản web tĩnh dựng sẵn một file khuôn `match/[id].html` cho route động
+          này. Lúc dựng chưa có id trận nào và cũng không gọi được API, nên màn
+          hình đi qua nhánh "đang tải" rồi dừng ở nhánh "lỗi". Cả hai nhánh
+          trước đây đều KHÔNG có <Seo> — kết quả là file xuất ra mang một thẻ
+          <title></title> RỖNG, không description, không canonical.
+
+          Giờ cả hai nhánh đều có thẻ dự phòng, nên khuôn trang luôn hợp lệ.
+          Khi người dùng mở trang thật và dữ liệu về, <Seo> ở nhánh chính sẽ
+          thay bằng tên hai đội thật.
+        */}
+        <Seo
+          title="Chi tiết trận đấu"
+          description="Tỷ số trực tiếp, diễn biến từng phút, đội hình ra sân và lịch sử đối đầu của trận đấu Đội tuyển Việt Nam."
+          path={`/match/${id ?? ''}`}
+        />
         <View style={{ gap: t.spacing.lg, paddingTop: t.spacing.lg }}>
           <Skeleton width="100%" height={210} radius={t.radius.xl} />
           <Skeleton width="100%" height={180} radius={t.radius.lg} />
@@ -93,6 +113,13 @@ export default function MatchDetailScreen() {
   if (detailQuery.isError || !match) {
     return (
       <Screen>
+        {/* noIndex: trang lỗi không được lọt vào kết quả tìm kiếm */}
+        <Seo
+          title="Không tải được trận đấu"
+          description="Không tìm thấy dữ liệu trận đấu này."
+          path={`/match/${id ?? ''}`}
+          noIndex
+        />
         <ErrorState
           title="Không tải được trận đấu"
           message={detailQuery.error instanceof Error ? detailQuery.error.message : undefined}
@@ -107,6 +134,28 @@ export default function MatchDetailScreen() {
       {/* Đặt tiêu đề thanh điều hướng theo tên hai đội */}
       <Stack.Screen
         options={{ title: `${match.home_team.fifa_code ?? ''} - ${match.away_team.fifa_code ?? ''}` }}
+      />
+
+      {/*
+        ⭐ SEO ĐỘNG — tiêu đề và mô tả dựng từ DỮ LIỆU THẬT của trận đấu.
+
+        Đây là khác biệt lớn nhất giữa một trang Google yêu thích và một trang
+        bị bỏ qua: mỗi trận có tiêu đề riêng, khớp đúng thứ người ta gõ vào ô
+        tìm kiếm ("Việt Nam vs Thái Lan tỷ số").
+
+        Dùng chung một tiêu đề tĩnh cho mọi trận thì Google coi hàng trăm trang
+        là trùng lặp và chỉ chọn hiện đúng một trang — toàn bộ phần còn lại
+        coi như không tồn tại.
+      */}
+      <Seo
+        title={`${match.home_team.name} vs ${match.away_team.name}`}
+        description={
+          `Tỷ số, diễn biến, đội hình ra sân và thống kê trận ` +
+          `${match.home_team.name} gặp ${match.away_team.name}` +
+          `${match.competition ? ' tại ' + match.competition : ''}. ` +
+          `Cập nhật trực tiếp từng phút.`
+        }
+        path={`/match/${match.id}`}
       />
 
       <Screen edges={[]} onRefresh={() => void detailQuery.refetch()} refreshing={detailQuery.isRefetching}>
@@ -265,26 +314,69 @@ export default function MatchDetailScreen() {
 }
 
 /**
- * MỘT DÒNG DIỄN BIẾN.
+ * ============================================================================
+ * MỘT DÒNG DIỄN BIẾN TRẬN ĐẤU
+ * ============================================================================
  *
- * Bố cục: [phút] [icon] [nội dung]
- * Cột phút rộng cố định 42px -> mọi dòng thẳng hàng, mắt lướt dọc rất nhanh.
+ * Bố cục ba cột:
+ *
+ *     45'+2   ⚽   Nguyễn Tiến Linh
+ *     ▲       ▲    ▲
+ *     │       │    └─ nội dung, chiếm hết chỗ còn lại
+ *     │       └────── icon loại sự kiện, rộng cố định
+ *     └────────────── phút, rộng CỐ ĐỊNH 42px
+ *
+ * 📐 VÌ SAO CỘT PHÚT PHẢI RỘNG CỐ ĐỊNH?
+ * Để mọi dòng thẳng hàng nhau. Mắt người lướt dọc một cột thẳng nhanh hơn hẳn
+ * so với cột so le. Nếu để cột co giãn theo nội dung, dòng "9'" sẽ hẹp hơn
+ * dòng "90'+5" và cả danh sách trông như răng cưa.
+ *
+ * Kết hợp với `tabular` (chữ số cùng bề rộng) thì các con số xếp thẳng tăm tắp.
  */
 function EventRow({ event, last }: { event: MatchEvent; last: boolean }) {
   const t = useTheme();
 
-  /** Icon + màu cho từng loại sự kiện */
+  /**
+   * BẢNG TRA: mỗi loại sự kiện -> icon, màu, tên tiếng Việt.
+   *
+   * 💡 VÌ SAO DÙNG BẢNG TRA MÀ KHÔNG DÙNG if/else HAY switch?
+   *   • Thêm loại sự kiện mới = thêm MỘT dòng, không đụng vào logic
+   *   • Nhìn một cái là thấy hết các loại đang hỗ trợ
+   *   • Không sợ quên `break` như trong switch
+   *
+   * ⚠️ Bảng này phải đặt BÊN TRONG component, không đặt ở cấp module.
+   * Lý do: nó dùng `t.colors.*`, mà bảng màu đổi theo chế độ sáng/tối. Đặt ở
+   * ngoài thì màu sẽ bị "đóng băng" theo lần render đầu tiên và không đổi khi
+   * người dùng chuyển chế độ.
+   *
+   * 🎨 Riêng thẻ vàng/thẻ đỏ dùng `t.static.card.*` chứ không dùng token theo
+   * theme: đó là màu của VẬT THỂ CÓ THẬT, không đổi theo giao diện.
+   * Xem giải thích trong theme/colors.ts.
+   */
   const config: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }> = {
     goal: { icon: 'football', color: t.colors.win, label: 'Bàn thắng' },
     own_goal: { icon: 'football', color: t.colors.lose, label: 'Phản lưới' },
     penalty: { icon: 'football', color: t.colors.win, label: 'Phạt đền' },
     missed_penalty: { icon: 'close-circle', color: t.colors.lose, label: 'Hỏng phạt đền' },
-    yellow_card: { icon: 'square', color: '#EAB308', label: 'Thẻ vàng' },
-    red_card: { icon: 'square', color: t.colors.lose, label: 'Thẻ đỏ' },
+    yellow_card: { icon: 'square', color: t.static.card.yellow, label: 'Thẻ vàng' },
+    red_card: { icon: 'square', color: t.static.card.red, label: 'Thẻ đỏ' },
     substitution: { icon: 'swap-horizontal', color: t.colors.textMuted, label: 'Thay người' },
     var: { icon: 'videocam', color: t.colors.textMuted, label: 'VAR' },
   };
 
+  /**
+   * 🛟 GIÁ TRỊ DỰ PHÒNG — dòng này quan trọng hơn vẻ ngoài của nó.
+   *
+   * Nếu backend (hoặc nhà cung cấp dữ liệu) thêm một loại sự kiện mới mà app
+   * chưa biết — ví dụ 'penalty_shootout' — thì `config[event.type]` là
+   * undefined, và `cfg.icon` sẽ làm app SẬP ngay giữa trận đấu.
+   *
+   * Với `??` thì loại lạ vẫn hiện ra dưới dạng một chấm tròn trung tính kèm
+   * đúng mã sự kiện. Xấu một chút, nhưng app không chết và người dùng vẫn
+   * biết là "có chuyện gì đó vừa xảy ra ở phút này".
+   *
+   * 👉 Nguyên tắc chung: dữ liệu đến từ mạng thì LUÔN phải có nhánh dự phòng.
+   */
   const cfg = config[event.type] ?? {
     icon: 'ellipse' as const,
     color: t.colors.textMuted,

@@ -28,6 +28,7 @@ import { AppText } from '@/components/common/Text';
 import { Input } from '@/components/common/Input';
 import { Button, IconButton } from '@/components/common/Button';
 import { useAuthStore } from '@/store/authStore';
+import { Seo } from '@/components/common/Seo';
 
 /** Danh sách yêu cầu mật khẩu — PHẢI khớp với auth.validator.ts của backend */
 const PASSWORD_RULES = [
@@ -84,6 +85,14 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: t.colors.bg }}>
       <StatusBar style={t.isDark ? 'light' : 'dark'} />
+
+      {/* noIndex: trang đăng ký không có giá trị gì với người đang tìm kiếm */}
+      <Seo
+        title="Đăng ký tài khoản"
+        description="Tạo tài khoản để lưu cầu thủ yêu thích và nhận thông báo bàn thắng."
+        path="/register"
+        noIndex
+      />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}

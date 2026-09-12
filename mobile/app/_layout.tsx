@@ -37,6 +37,7 @@ import { Stack } from 'expo-router';
 import { ThemeProvider, useTheme } from '@/theme';
 import { useAuthStore } from '@/store/authStore';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useSettingsStore } from '@/store/settingsStore';
 
 /**
  * REACT QUERY — thư viện quản lý "dữ liệu đến từ server".
@@ -92,9 +93,19 @@ export default function RootLayout() {
    */
   const bootstrap = useAuthStore((s) => s.bootstrap);
 
+  /**
+   * Đọc cài đặt (senior mode, sáng/tối, đã xem giới thiệu chưa) từ ổ đĩa.
+   *
+   * ⚠️ Chạy SONG SONG với bootstrap() của xác thực, không nối đuôi nhau.
+   * Hai việc này hoàn toàn độc lập — xếp hàng chỉ làm app mở chậm gấp đôi
+   * mà chẳng được gì.
+   */
+  const hydrateSettings = useSettingsStore((s) => s.hydrate);
+
   useEffect(() => {
     void bootstrap();
-  }, [bootstrap]);
+    void hydrateSettings();
+  }, [bootstrap, hydrateSettings]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -143,6 +154,12 @@ function RootNavigator() {
 
       {/* Nhóm đăng nhập/đăng ký — cũng tự vẽ giao diện riêng */}
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+      {/* Phần giới thiệu 4 slide — tự vẽ toàn màn hình nên ẩn header */}
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+
+      {/* Cài đặt — mở từ ảnh đại diện ở góc phải mỗi tab */}
+      <Stack.Screen name="settings" options={{ title: 'Cài đặt' }} />
 
       {/* Màn hình chi tiết — mở chồng lên tab, có nút quay lại */}
       <Stack.Screen name="match/[id]" options={{ title: 'Chi tiết trận đấu' }} />

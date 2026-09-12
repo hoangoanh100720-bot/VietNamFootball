@@ -33,6 +33,8 @@ import { formatEuro, POSITION_LABEL, shortenName } from '@/utils/format';
 import type { Player, PlayerPosition } from '@/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { HeroBanner } from '@/components/decor';
+import { Seo } from '@/components/common/Seo';
 
 /** Các nút lọc. null = xem tất cả */
 const FILTERS: Array<{ value: PlayerPosition | null; label: string }> = [
@@ -85,11 +87,27 @@ export default function PlayersTab() {
     () => (
       <View style={{ gap: t.spacing.lg, paddingBottom: t.spacing.md }}>
         {/* ---------- Tiêu đề ---------- */}
-        <View style={{ paddingTop: t.spacing.md }}>
-          <AppText variant="h2">Cầu thủ & HLV</AppText>
-          <AppText variant="caption" tone="muted">
-            Danh sách triệu tập đội tuyển quốc gia
-          </AppText>
+        {/*
+          ⚠️ MÀN HÌNH NÀY KHÁC BA TAB KIA.
+
+          Phần đầu ở đây là ListHeaderComponent của một FlatList, nên nó nằm
+          BÊN TRONG phần lề của danh sách — không dùng được prop `header` của
+          <Screen> để tràn sát mép màn hình như các tab khác.
+
+          Giải pháp: dùng HeroBanner dạng THẺ BO GÓC BỐN CẠNH. Đây không phải
+          giải pháp chắp vá mà là lựa chọn đúng: màn hình danh sách vốn đã
+          nhiều mảng chữ nhật, một khối hero bo tròn đứng đầu lại giúp mắt
+          phân biệt "phần giới thiệu" với "phần danh sách" rõ hơn.
+        */}
+        <View style={{ paddingTop: t.spacing.md, borderRadius: t.radius.xl, overflow: 'hidden' }}>
+          <HeroBanner minHeight={110} rounded={false} showFlag>
+            <AppText variant="h2" style={{ color: t.static.white }}>
+              Cầu thủ & HLV
+            </AppText>
+            <AppText variant="caption" style={{ color: t.static.riceGradient[0], marginTop: 2 }}>
+              Danh sách triệu tập đội tuyển quốc gia
+            </AppText>
+          </HeroBanner>
         </View>
 
         {/* ---------- Thẻ huấn luyện viên ---------- */}
@@ -242,6 +260,13 @@ export default function PlayersTab() {
     <SafeAreaView style={{ flex: 1, backgroundColor: t.colors.bg }} edges={['top']}>
       <StatusBar style={t.isDark ? 'light' : 'dark'} />
 
+      {/* Thẻ SEO riêng của màn hình — xem components/common/Seo.tsx */}
+      <Seo
+        title="Cầu thủ & Huấn luyện viên"
+        description="Danh sách cầu thủ được triệu tập lên Đội tuyển Việt Nam: vị trí thi đấu, câu lạc bộ chủ quản, giá trị chuyển nhượng và hồ sơ huấn luyện viên trưởng."
+        path="/players"
+      />
+
       <FlatList
         data={players}
         keyExtractor={(item) => String(item.id)}
@@ -257,6 +282,28 @@ export default function PlayersTab() {
           <PlayerRow player={item} onPress={() => router.push(`/player/${item.id}`)} />
         )}
         // Ba trạng thái khi danh sách trống: đang tải / lỗi / không có kết quả
+        /**
+         * ⭐ BA TRẠNG THÁI KHI DANH SÁCH TRỐNG — ĐỪNG GỘP LÀM MỘT.
+         *
+         * `ListEmptyComponent` chỉ hiện khi `data` rỗng. Nhưng "rỗng" có tới
+         * ba nguyên nhân hoàn toàn khác nhau, và người dùng cần biết là cái nào:
+         *
+         *   ĐANG TẢI  → khung xương nhấp nháy. Nói "chờ chút, sắp có rồi".
+         *               ⚠️ Dùng skeleton chứ KHÔNG dùng vòng xoay: skeleton
+         *               cho thấy trước hình dạng nội dung sắp hiện, nên cảm
+         *               giác chờ ngắn hơn dù thời gian thật y hệt.
+         *
+         *   LỖI       → thông báo + nút "Thử lại". Lỗi mạng mà không có nút
+         *               thử lại thì người dùng chỉ còn cách tắt app mở lại.
+         *
+         *   KHÔNG CÓ  → giải thích VÌ SAO trống và gợi ý làm gì tiếp.
+         *               Để ý hai câu khác nhau tuỳ có đang tìm kiếm hay không:
+         *               "không có kết quả cho X" ≠ "vị trí này chưa có ai".
+         *
+         * 🚫 Gộp cả ba thành một dòng "Không có dữ liệu" là lỗi giao diện phổ
+         *    biến nhất: người dùng không phân biệt được app đang tải, app hỏng,
+         *    hay đúng là chẳng có gì — và họ sẽ mặc định là app hỏng.
+         */
         ListEmptyComponent={
           playersQuery.isLoading ? (
             <View>

@@ -211,9 +211,30 @@ export function SectionHeader({
         marginTop: t.spacing.xl,
       }}
     >
-      <AppText variant="overline" tone="muted">
-        {title}
-      </AppText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm, flex: 1 }}>
+        {/*
+          ⭐ MẮT TRE ĐỨNG TRƯỚC MỖI TIÊU ĐỀ MỤC.
+
+          Một lóng tre dọc 3×14px. Nhỏ tới mức gần như không ai để ý — và đó
+          chính là điều ta muốn. Nó không tranh chỗ với chữ, nhưng lặp lại
+          trên mọi màn hình thì tạo thành một NHỊP nhận diện: người dùng
+          quen mắt với nó mà không ý thức được.
+
+          Đây là khác biệt giữa "có bảng màu đẹp" và "có bản sắc thị giác":
+          bản sắc nằm ở những chi tiết nhỏ được lặp lại nhất quán.
+        */}
+        <View
+          style={{
+            width: 3,
+            height: 14,
+            borderRadius: 2,
+            backgroundColor: t.colors.bamboo,
+          }}
+        />
+        <AppText variant="overline" tone="muted">
+          {title}
+        </AppText>
+      </View>
       {action}
     </View>
   );
