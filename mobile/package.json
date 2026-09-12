@@ -38,11 +38,11 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "start:clear": "expo start --clear",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "start": "node --env-file=../.env node_modules/expo/bin/cli start",
+    "start:clear": "node --env-file=../.env node_modules/expo/bin/cli start --clear",
+    "android": "node --env-file=../.env node_modules/expo/bin/cli start --android",
+    "ios": "node --env-file=../.env node_modules/expo/bin/cli start --ios",
+    "web": "node --env-file=../.env node_modules/expo/bin/cli start --web",
     "typecheck": "tsc --noEmit"
   },
   "private": true

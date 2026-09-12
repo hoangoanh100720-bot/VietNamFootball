@@ -38,7 +38,8 @@ import type { ApiError, AuthTokens } from '@/types';
  * Cách tìm IP:  Windows -> mở CMD gõ `ipconfig`, xem dòng IPv4 Address
  *               macOS   -> `ipconfig getifaddr en0`
  *
- * Sau đó sửa EXPO_PUBLIC_API_URL trong file mobile/.env.
+ * Sau đó sửa EXPO_PUBLIC_API_URL trong file .env ở GỐC repo (một file cho cả
+ * dự án; `npm start` nạp nó qua `node --env-file=../.env`).
  *
  * Vì sao tên biến phải bắt đầu bằng EXPO_PUBLIC_?
  * Vì Expo chỉ nhúng những biến có tiền tố đó vào bundle. Đồng thời đây là

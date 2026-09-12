@@ -112,7 +112,7 @@ export default function LoginScreen() {
 
             <View style={{ alignItems: 'center', gap: 2 }}>
               <AppText variant="h2" center>
-                Bóng Đá Việt Nam
+                Đội tuyển Việt Nam
               </AppText>
               <AppText variant="caption" tone="muted" center>
                 Đăng nhập để theo dõi đội tuyển quốc gia

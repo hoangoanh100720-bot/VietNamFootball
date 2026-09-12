@@ -1,6 +1,6 @@
-# ⚽ Ứng dụng Đội tuyển Bóng đá Quốc gia Việt Nam
+# ⚽ Đội tuyển Việt Nam
 
-Ứng dụng di động fullstack: tỷ số trực tiếp, đội hình, hồ sơ cầu thủ và dự đoán kết quả bằng AI.
+Ứng dụng di động (fullstack) cho người hâm mộ Đội tuyển Bóng đá Quốc gia Việt Nam: giới thiệu & thành tích, tỷ số trực tiếp, đội hình, hồ sơ cầu thủ, thống kê sau trận, điểm cầu thủ và trợ lý AI.
 
 > 📐 Thiết kế kỹ thuật chi tiết: xem [ARCHITECTURE.md](./ARCHITECTURE.md)
 
@@ -8,7 +8,15 @@
 
 ## 🚀 CHẠY THỬ TRONG 5 PHÚT
 
-Bạn cần: **Node.js 18 trở lên** (kiểm tra bằng `node -v`). Không cần cài PostgreSQL, Redis hay Docker.
+Bạn cần: **Node.js 20.6 trở lên**, khuyến nghị 22 (kiểm tra bằng `node -v`). Không cần cài PostgreSQL, Redis hay Docker.
+
+### Bước 0 — Tạo file `.env` (MỘT file duy nhất cho cả backend và mobile)
+
+```bash
+cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
+```
+
+File `.env` nằm ở **gốc repo**, đã có trong `.gitignore`. Đổi `JWT_SECRET` và `JWT_REFRESH_SECRET` thành chuỗi ngẫu nhiên (`openssl rand -hex 64`). Mobile chỉ đọc các biến `EXPO_PUBLIC_*` trong file này.
 
 ### Bước 1 — Khởi động Backend
 
@@ -43,7 +51,7 @@ App chạy trên điện thoại nên `localhost` sẽ trỏ vào chính cái đ
 | macOS | `ipconfig getifaddr en0` | kết quả in ra |
 | Linux | `hostname -I` | số đầu tiên |
 
-Sau đó sửa file `mobile/.env`:
+Sau đó sửa nhóm 17 trong file `.env` ở **gốc repo**:
 
 ```env
 EXPO_PUBLIC_API_URL=http://192.168.1.56:5000/api/v1
@@ -77,6 +85,8 @@ Một mã QR sẽ hiện ra. Cài app **Expo Go** trên điện thoại (có tr�
 VietNamFootball/
 ├── ARCHITECTURE.md          # tài liệu thiết kế hệ thống
 ├── README.md                # file bạn đang đọc
+├── .env.example             # mẫu biến môi trường (được commit)
+├── .env                     # biến môi trường thật — MỘT file cho cả dự án (KHÔNG commit)
 │
 ├── backend/                 # ===== API SERVER (Node.js + Express) =====
 │   ├── src/
@@ -189,7 +199,7 @@ npm run typecheck  # kiểm tra lỗi kiểu dữ liệu
 Kiểm tra lần lượt:
 
 1. Backend đã chạy chưa? → mở <http://localhost:5000/health> trên máy tính
-2. `EXPO_PUBLIC_API_URL` trong `mobile/.env` đã đúng IP máy tính chưa? (không phải `localhost`)
+2. `EXPO_PUBLIC_API_URL` trong `.env` ở gốc repo đã đúng IP máy tính chưa? (không phải `localhost`)
 3. Điện thoại và máy tính có chung Wi-Fi không?
 4. Tường lửa Windows có chặn cổng 5000 không? Thử lệnh sau trong PowerShell chạy bằng quyền Admin:
 
@@ -224,13 +234,13 @@ netstat -ano | findstr :5000
 taskkill /PID <số_PID> /F
 ```
 
-Hoặc đổi sang cổng khác trong `backend/.env`: `PORT=5001` (nhớ sửa cả `mobile/.env`).
+Hoặc đổi sang cổng khác trong `.env` ở gốc repo: `PORT=5001` (nhớ sửa cả `EXPO_PUBLIC_API_URL` và `EXPO_PUBLIC_SOCKET_URL` trong cùng file).
 </details>
 
 <details>
 <summary><b>Tỷ số trực tiếp không tự nhảy</b></summary>
 
-1. Trong `backend/.env` phải có `LIVE_SIMULATION=true` và `LIVE_POLLING_ENABLED=true`
+1. Trong `.env` phải có `LIVE_SIMULATION=true` và `LIVE_POLLING_ENABLED=true`
 2. Trận trong dữ liệu mẫu sẽ kết thúc ở phút 90. Chạy `npm run seed` để tạo lại trận đang đá.
 3. Kiểm tra WebSocket bằng: `node scripts/socket-test.mjs`
 </details>
@@ -263,7 +273,7 @@ Mặc định app dùng **mô hình thống kê Elo** — hoạt động tốt, 
 Muốn dùng AI thật để có bài phân tích chuyên sâu:
 
 1. Lấy API key miễn phí tại <https://aistudio.google.com/apikey>
-2. Điền vào `backend/.env`:
+2. Điền vào `.env` ở gốc repo:
    ```env
    GEMINI_API_KEY=khoá_của_bạn
    ```
@@ -276,7 +286,7 @@ Muốn dùng AI thật để có bài phân tích chuyên sâu:
 Hiện dữ liệu đến từ `npm run seed` (dữ liệu mẫu). Muốn lấy dữ liệu thật:
 
 1. Đăng ký tại <https://www.api-football.com/> (có gói miễn phí)
-2. Điền `FOOTBALL_API_KEY` vào `backend/.env`, đặt `CRON_ENABLED=true` và `LIVE_SIMULATION=false`
+2. Điền `FOOTBALL_API_KEY` vào `.env`, đặt `CRON_ENABLED=true` và `LIVE_SIMULATION=false`
 3. Hoàn thiện phần gọi API trong `backend/src/services/crawler.service.ts` (khung đã dựng sẵn kèm chú thích)
 
 ### Thông báo bàn thắng khi app đã đóng
@@ -302,7 +312,7 @@ Sau đó cấu hình Firebase ở backend:
 
 1. Tạo dự án tại <https://console.firebase.google.com>
 2. Vào **Project Settings → Service accounts → Generate new private key** (tải về file JSON)
-3. Điền vào `backend/.env` từ ba trường trong file JSON đó:
+3. Điền vào `.env` từ ba trường trong file JSON đó:
 
 ```env
 FCM_ENABLED=true
@@ -317,7 +327,7 @@ Chưa cấu hình thì backend vẫn chạy bình thường, chỉ ghi log `[PUS
 
 ### Chuyển sang PostgreSQL thật
 
-Khi triển khai lên máy chủ, đổi trong `backend/.env`:
+Khi triển khai lên máy chủ, đổi trong `.env` (production: bơm cùng tên biến từ Secret Manager thay vì dùng file):
 
 ```env
 DB_DRIVER=postgres
@@ -336,7 +346,7 @@ Dịch vụ PostgreSQL miễn phí: [Neon](https://neon.tech), [Supabase](https:
 | Phần | Trạng thái |
 |---|---|
 | Backend: nền tảng, log, xử lý lỗi | ✅ |
-| Database: 14 bảng + migration + dữ liệu mẫu | ✅ |
+| Database: schema đầy đủ (migration `001`–`005`) + dữ liệu mẫu cho mọi tính năng | ✅ |
 | Auth: bcrypt, JWT, xoay vòng refresh token | ✅ |
 | API: trận đấu, đội hình, cầu thủ, HLV, BXH | ✅ |
 | AI: Gemini + mô hình thống kê dự phòng | ✅ |

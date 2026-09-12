@@ -18,6 +18,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { closeDatabase, connectDatabase, execScript, query } from '@/config/database';
+import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
@@ -33,10 +34,31 @@ export async function runMigrations(): Promise<void> {
   `);
 
   // --- Bước 2: đọc danh sách file ---
-  const files = fs
-    .readdirSync(MIGRATIONS_DIR)
-    .filter((f) => f.endsWith('.sql'))
+  const all = fs.readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith('.sql'));
+
+  /**
+   * Hai loại file KHÔNG được chạy tự động:
+   *   *.down.sql — file lùi lại (rollback), chỉ chạy bằng tay khi cần.
+   *   *.pg.sql   — cần tính năng chỉ PostgreSQL thật mới có (ví dụ extension
+   *                pgvector cho trợ lý AI). PGlite nhúng không có nên bỏ qua;
+   *                khi đổi sang DB_DRIVER=postgres, chạy lại `npm run migrate`
+   *                là các file này được áp dụng.
+   */
+  const skipped: string[] = [];
+  const files = all
+    .filter((f) => !f.endsWith('.down.sql'))
+    .filter((f) => {
+      if (f.endsWith('.pg.sql') && env.DB_DRIVER === 'pglite') {
+        skipped.push(f);
+        return false;
+      }
+      return true;
+    })
     .sort(); // "001_" < "002_" < "010_" nên sắp theo chuỗi là đúng thứ tự
+
+  if (skipped.length > 0) {
+    logger.warn('Bỏ qua (cần PostgreSQL thật, đang dùng PGlite): ' + skipped.join(', '));
+  }
 
   // --- Bước 3: lọc ra file chưa chạy ---
   const { rows } = await query<{ name: string }>('SELECT name FROM _migrations');

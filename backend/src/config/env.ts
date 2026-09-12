@@ -14,9 +14,17 @@
  * Đây gọi là nguyên tắc "fail fast" (hỏng thì hỏng sớm).
  */
 
-// `dotenv/config` tự động đọc file .env và nạp vào process.env
-import 'dotenv/config';
+import path from 'path';
+import { config as loadDotenv } from 'dotenv';
 import { z } from 'zod';
+
+/**
+ * Cả dự án dùng MỘT file .env ở GỐC repo (backend, mobile, docker-compose).
+ * src/config/env.ts và dist/config/env.js đều nằm sâu 3 cấp so với gốc repo.
+ * Biến đã có sẵn trong môi trường (Docker, Secret Manager) được giữ nguyên —
+ * dotenv không ghi đè; không có file (production) thì dotenv bỏ qua, không lỗi.
+ */
+loadDotenv({ path: path.resolve(__dirname, '../../../.env') });
 
 /**
  * z.coerce.number() = "ép kiểu về số".
@@ -134,7 +142,7 @@ if (!parsed.success) {
   for (const issue of parsed.error.issues) {
     console.error(`   • ${issue.path.join('.')}: ${issue.message}`);
   }
-  console.error('\n👉 Mở file backend/.env và sửa các biến ở trên rồi chạy lại.\n');
+  console.error('\n👉 Mở file .env ở gốc repo và sửa các biến ở trên rồi chạy lại.\n');
   process.exit(1); // Dừng hẳn app. Thà không chạy còn hơn chạy sai.
 }
 
