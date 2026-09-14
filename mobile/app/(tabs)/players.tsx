@@ -356,7 +356,8 @@ function PlayerRow({ player, onPress }: { player: Player; onPress: () => void })
         <PlayerAvatar
           uri={player.photo_url}
           name={player.full_name}
-          size={48}
+          // 60 thay vì 48: đã có ảnh mặt thật, người xem cần NHẬN RA được ai trước khi bấm vào
+          size={60}
           shirtNumber={player.shirt_number}
         />
 

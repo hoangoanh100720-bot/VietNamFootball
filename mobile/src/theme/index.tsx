@@ -26,6 +26,9 @@ import {
   TOUCH_TARGET, SENIOR_TOUCH_TARGET, MAX_FONT_SCALE, SENIOR_MAX_FONT_SCALE,
 } from './tokens';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useActiveTheme } from '@/hooks/useActiveTheme';
+import { buildPalette } from './themes';
+import type { EventTheme } from '@/types';
 
 export interface Theme {
   colors: ColorPalette;
@@ -70,6 +73,12 @@ export interface Theme {
    * cử chỉ vuốt bằng nút bấm, tắt hiệu ứng chuyển động.
    */
   isSenior: boolean;
+  /**
+   * ⭐ Theme sự kiện đang áp dụng (Tết, Quốc khánh, Đi bão…) — null khi đang
+   * dùng màu gốc hoặc chưa tải xong. Màu của nó ĐÃ được trộn sẵn vào "colors";
+   * component chỉ đọc trường này khi cần LỜI CHÀO hoặc HIỆU ỨNG (assets).
+   */
+  eventTheme: EventTheme | null;
 }
 
 /**
@@ -101,6 +110,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const preference = useSettingsStore((s) => s.colorScheme);
   const isSenior = useSettingsStore((s) => s.isSenior);
 
+  /**
+   * ⭐ LỚP 2–3 CỦA HỆ THỐNG THEME (ARCHITECTURE.md mục 6.1).
+   * Theme 'default' coi như không có ghi đè — màu gốc trong colors.ts đã là
+   * "Đỏ cờ", không cần gộp lại lần nữa.
+   */
+  const active = useActiveTheme();
+  const eventTheme = active && active.theme.code !== 'default' ? active.theme : null;
+
   const isDark =
     preference === 'system'
       ? systemScheme !== 'light' // mặc định TỐI khi không xác định được
@@ -113,7 +130,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
    */
   const value = useMemo<Theme>(
     () => ({
-      colors: isDark ? darkColors : lightColors,
+      /**
+       * ⭐ GỘP MÀU THEME VÀO BẢNG GỐC.
+       *
+       * buildPalette chỉ cho đổi các token trong danh sách trắng (accent, gold…),
+       * nên dù theme là gì, chữ/nền/màu thắng-thua vẫn y nguyên. Và vì MỌI
+       * component đều lấy màu qua t.colors (quy tắc "không dùng mã màu thô"),
+       * cả app tự khoác áo Tết mà không component nào phải sửa một dòng.
+       */
+      colors: buildPalette(
+        isDark ? darkColors : lightColors,
+        eventTheme ? (isDark ? eventTheme.palette_dark : eventTheme.palette_light) : null
+      ),
       static: staticColors,
 
       /**
@@ -143,8 +171,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       isDark,
       /** Component đọc cờ này khi cần đổi HÀNH VI, không chỉ đổi kích thước */
       isSenior,
+      eventTheme,
     }),
-    [isDark, isSenior]
+    [isDark, isSenior, eventTheme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

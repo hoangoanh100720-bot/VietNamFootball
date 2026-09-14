@@ -231,6 +231,32 @@ export default function MatchDetailScreen() {
             />
           </Card>
 
+          {/* =============== ⭐ HỎI AI VỀ TRẬN NÀY =============== */}
+          {/*
+            Đặc tả mục 5.6–5.7: từ chi tiết trận phải có lối đi thẳng sang trợ lý.
+
+            📍 VÌ SAO ĐẶT ĐÚNG CHỖ NÀY — ngay sau bảng thông tin trận, trước
+            lịch sử đối đầu?
+
+            Vì đây là điểm người đọc vừa nắm xong SỰ KIỆN (tỷ số, diễn biến,
+            sân bãi) và bắt đầu nảy ra câu hỏi về Ý NGHĨA ("sao cậu ấy chỉ được
+            6.4?", "hai đội này ai thường thắng?"). Đặt tận cuối trang thì phần
+            lớn người dùng không cuộn tới; đặt trên đầu thì họ chưa có gì để hỏi.
+
+            🔗 `?frame=assistant` đưa thẳng vào KHUNG ② của tab Thống kê, không
+            phải khung đầu tiên — xem useEffect xử lý tham số này ở
+            app/(tabs)/ai.tsx.
+          */}
+          <View style={{ marginTop: t.spacing.xl }}>
+            <Button
+              label="Hỏi AI về trận này"
+              variant="secondary"
+              icon="chatbubbles"
+              fullWidth
+              onPress={() => router.push('/ai?frame=assistant')}
+            />
+          </View>
+
           {/* =============== LỊCH SỬ ĐỐI ĐẦU =============== */}
           <SectionHeader title="Lịch sử đối đầu" />
 

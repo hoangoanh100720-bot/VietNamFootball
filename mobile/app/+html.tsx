@@ -176,9 +176,9 @@ export default function Root({ children }: { children: ReactNode }) {
         {/*
           theme-color tô màu thanh địa chỉ của trình duyệt trên Android.
           Hai giá trị khớp với hai chế độ trong theme/colors.ts:
-            sáng -> #F7F6EF (giấy dó)   ·   tối -> #0A1A12 (xanh tre đêm)
+            sáng -> #EDF5EE (lá mạ)   ·   tối -> #0A1A12 (xanh tre đêm)
         */}
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F7F6EF" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#EDF5EE" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A1A12" />
         <meta name="color-scheme" content="dark light" />
 
@@ -318,9 +318,9 @@ const BASE_CSS = `
     font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   }
 
-  /* Người dùng để máy ở chế độ sáng -> nền giấy dó */
+  /* Người dùng để máy ở chế độ sáng -> nền lá mạ */
   @media (prefers-color-scheme: light) {
-    body { background-color: #F7F6EF; }
+    body { background-color: #EDF5EE; }
   }
 
   /* Tôn trọng lựa chọn tắt hiệu ứng chuyển động */

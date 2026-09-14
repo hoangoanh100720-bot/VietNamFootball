@@ -44,16 +44,36 @@ import { Screen } from '@/components/common/Screen';
 import { AppText } from '@/components/common/Text';
 import { SectionHeader } from '@/components/common/Card';
 import { ErrorState, EmptyState, LoadingList, Skeleton } from '@/components/common/States';
-import { AccountButton } from '@/components/common/AccountButton';
 import { LiveScoreCard } from '@/components/match/LiveScoreCard';
 import { FixtureItem } from '@/components/match/FixtureItem';
-import { matchesApi, rankingApi } from '@/api/endpoints';
+import { competitionsApi, matchesApi, rankingApi } from '@/api/endpoints';
+import { StandingsPanel } from '@/components/match/StandingsTable';
+import { SeniorHome } from '@/components/senior/SeniorHome';
+import { HomeHero } from '@/components/brand/HomeHero';
 import { useLiveScore } from '@/hooks/useLiveScore';
-import { HeroBanner, GoldStar } from '@/components/decor';
 import { Seo } from '@/components/common/Seo';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 
+/**
+ * ⭐ ĐIỂM RẼ NHÁNH SENIOR MODE (ARCHITECTURE.md mục 7.3).
+ *
+ * Senior mode không phải "cùng màn hình, chữ to hơn" — nó là MỘT MÀN HÌNH KHÁC,
+ * chỉ trả lời ba câu: mấy giờ đá, xem kênh nào, tỷ số bao nhiêu.
+ *
+ * ⚠️ Vì sao rẽ nhánh bằng một component bọc ngoài, không viết
+ * "if (t.isSenior) return <SeniorHome />" ngay đầu MatchesTabFull?
+ * Vì MatchesTabFull gọi hàng chục hook (useQuery, useState, useLiveScore…).
+ * React yêu cầu mỗi lần render phải gọi ĐÚNG CÙNG các hook theo CÙNG thứ tự.
+ * Return sớm TRƯỚC khi gọi hết hook -> người dùng bật Senior mode giữa chừng ->
+ * lần render sau gọi ít hook hơn -> React báo lỗi "Rendered fewer hooks than
+ * expected" và app sập. Tách hai component thì mỗi bên có bộ hook riêng, cố định.
+ */
 export default function MatchesTab() {
+  const t = useTheme();
+  return t.isSenior ? <SeniorHome /> : <MatchesTabFull />;
+}
+
+function MatchesTabFull() {
   const t = useTheme();
   const router = useRouter();
 
@@ -116,15 +136,28 @@ export default function MatchesTab() {
   const isRefreshing =
     latestQuery.isRefetching || upcomingQuery.isRefetching || resultsQuery.isRefetching;
 
-  const vietnamRank = rankingQuery.data?.vietnam;
-
   /**
    * Phân đoạn danh sách trận đang xem (ARCHITECTURE.md mục 5.2).
    *
    * Mặc định "Sắp diễn ra" vì đó là câu người hâm mộ hỏi nhiều nhất khi mở
    * app: "bao giờ đá tiếp?". Kết quả trận cũ thì họ thường đã biết rồi.
    */
-  const [listSegment, setListSegment] = useState<'upcoming' | 'results'>('upcoming');
+  const [listSegment, setListSegment] = useState<'upcoming' | 'results' | 'standings'>('upcoming');
+
+  /**
+   * BXH bảng đấu — CÙNG queryKey với StandingsPanel.
+   *
+   * Ở đây chỉ cần biết "có giải vòng bảng không" để quyết định có hiện phân
+   * đoạn thứ ba hay không (đặc tả 5.8). Nhờ dùng chung khoá, khi người dùng
+   * bấm sang phân đoạn đó, StandingsPanel lấy ngay dữ liệu đã có trong cache —
+   * không tải lại lần hai.
+   */
+  const standingsQuery = useQuery({
+    queryKey: ['competitions', 'standings', 'current'],
+    queryFn: () => competitionsApi.standings(),
+    staleTime: 10 * 60 * 1000,
+  });
+  const hasStandings = Boolean(standingsQuery.data?.season && standingsQuery.data.groups.length > 0);
 
   /**
    * =====================================================================
@@ -141,67 +174,12 @@ export default function MatchesTab() {
    * đậm — biến mất hoàn toàn. Nền cố định thì chữ trên nó cũng phải cố định:
    * đây chính là lý do staticColors tồn tại.
    */
-  const hero = (
-    <HeroBanner minHeight={136}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: t.spacing.md,
-        }}
-      >
-        <View style={{ flex: 1 }}>
-        <AppText variant="h2" style={{ color: t.static.white }}>Đội tuyển Việt Nam</AppText>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-          {rankingQuery.isLoading ? (
-            <Skeleton width={140} height={13} />
-          ) : vietnamRank ? (
-            <>
-              {/* Ngôi sao vàng thay cho icon cúp: cùng ý nghĩa, nhưng là
-                  biểu tượng của RIÊNG app này chứ không phải icon dùng chung */}
-              <GoldStar size={13} />
-              <AppText variant="caption" tabular style={{ color: t.static.liveGold }}>
-                Hạng {vietnamRank.rank} FIFA
-              </AppText>
-
-              {/* Mũi tên tăng/giảm hạng — CÓ CẢ ICON VÀ SỐ, không chỉ màu */}
-              {vietnamRank.change !== 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-                  <Ionicons
-                    name={vietnamRank.change > 0 ? 'caret-up' : 'caret-down'}
-                    size={12}
-                    color={vietnamRank.change > 0 ? t.colors.win : t.colors.lose}
-                  />
-                  <AppText
-                    tabular
-                    style={{
-                      fontSize: t.fontSize.xs,
-                      fontWeight: t.fontWeight.bold,
-                      color: vietnamRank.change > 0 ? t.colors.win : t.colors.lose,
-                    }}
-                  >
-                    {Math.abs(vietnamRank.change)}
-                  </AppText>
-                </View>
-              )}
-            </>
-          ) : null}
-        </View>
-        </View>
-
-        {/*
-          Nút tài khoản ở góc phải.
-          marginRight chừa chỗ cho lá cờ nhỏ mà HeroBanner tự vẽ ở góc —
-          không chừa thì hai thứ chồng lên nhau.
-        */}
-        <View style={{ marginRight: 40 }}>
-          <AccountButton />
-        </View>
-      </View>
-    </HeroBanner>
-  );
+  /**
+   * ⭐ BANNER TRANG CHỦ — lá cờ lớn, bông lúa, ba thẻ số liệu ba màu chủ đạo.
+   * Toàn bộ nằm ở components/brand/HomeHero.tsx (bản cũ chỉ có tên + hạng FIFA
+   * trên một mảng nền trống, người dùng nhận xét là "trống trải").
+   */
+  const hero = <HomeHero />;
 
   return (
     <Screen header={hero} onRefresh={onRefresh} refreshing={isRefreshing}>
@@ -270,6 +248,8 @@ export default function MatchesTab() {
           segments={[
             { value: 'upcoming', label: 'Sắp diễn ra' },
             { value: 'results', label: 'Kết quả' },
+            // Phân đoạn thứ ba chỉ xuất hiện khi Việt Nam đang dự giải có vòng bảng
+            ...(hasStandings ? [{ value: 'standings' as const, label: 'BXH' }] : []),
           ]}
           value={listSegment}
           onChange={setListSegment}
@@ -279,7 +259,9 @@ export default function MatchesTab() {
       <View style={{ height: t.spacing.lg }} />
 
       {/* =================== LỊCH THI ĐẤU =================== */}
-      {listSegment === 'upcoming' ? (
+      {listSegment === 'standings' ? (
+        <StandingsPanel />
+      ) : listSegment === 'upcoming' ? (
         upcomingQuery.isLoading ? (
           <LoadingList count={3} variant="match" />
         ) : upcomingQuery.data?.data.matches.length ? (

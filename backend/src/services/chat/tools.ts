@@ -95,6 +95,9 @@ import * as matchesService from '@/modules/matches/matches.service';
 import * as rankingService from '@/modules/ranking/ranking.service';
 import * as teamService from '@/modules/team/team.service';
 import { getMatchRatings } from '@/services/rating/rating.service';
+import { getStandings } from '@/modules/competitions/competitions.service';
+import { getCurrentSquad } from '@/modules/squads/squads.service';
+import { getLeaderboard } from '@/modules/stats/stats.service';
 
 // ---------------------------------------------------------------------------
 // KIỂU DỮ LIỆU
@@ -146,6 +149,36 @@ function toNumber(value: unknown): number | null {
 /** Đọc tham số chuỗi, cắt khoảng trắng và chặn độ dài */
 function toText(value: unknown, maxLength = 120): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+}
+
+/**
+ * Tính tuổi từ ngày sinh.
+ *
+ * Cơ sở dữ liệu chỉ lưu `birth_date`; tuổi là số liệu DẪN XUẤT nên phải tính
+ * lúc đọc. Lưu sẵn cột "tuổi" thì mỗi năm nó lại sai đi một tuổi, trừ khi có
+ * job chạy nền đi sửa — một cơ chế phức tạp để thay cho hai dòng số học này.
+ *
+ * ⚠️ Phải trừ lùi khi CHƯA tới sinh nhật trong năm. Bỏ qua bước đó thì suốt
+ * từ tháng 1 tới ngày sinh nhật, mọi cầu thủ đều bị cộng dư một tuổi.
+ *
+ * Cùng cách tính với calculateAge() ở players.service.ts, để con số trợ lý
+ * đọc ra luôn khớp với con số hiện trên hồ sơ cầu thủ trong app.
+ */
+function ageFromBirthDate(birthDate: string | null): number | null {
+  if (!birthDate) return null;
+
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--; // chưa tới sinh nhật năm nay
+  }
+
+  return age;
 }
 
 /**
@@ -320,14 +353,42 @@ export const TOOLS: ToolDefinition[] = [
         full_name: string;
         position: string;
         shirt_number: number | null;
-        age: number | null;
+        birth_date: string | null;
         current_club: string | null;
         caps: number;
         goals: number;
         market_value_eur: string;
         hometown: string | null;
       }>(
-        `SELECT id, full_name, position, shirt_number, age, current_club,
+        /**
+         * ⚠️ LẤY `birth_date`, KHÔNG LẤY `age` — `age` KHÔNG PHẢI LÀ CỘT.
+         *
+         * 🐛 LỖI ĐÃ GẶP THẬT, và nó ẩn mình rất giỏi:
+         *
+         * Bản đầu viết `SELECT ..., age, ...` vì API /players trả về trường
+         * `age` nên tôi đinh ninh trong bảng có cột đó. Thực ra tuổi được TÍNH
+         * trong JavaScript bằng calculateAge() ở players.service.ts — cơ sở dữ
+         * liệu chỉ lưu ngày sinh.
+         *
+         * Vì sao khó phát hiện: câu SQL hỏng ném lỗi, runTool() bắt lỗi đó và
+         * trả về câu chung chung "Không lấy được dữ liệu lúc này". Trợ lý đọc
+         * được câu đó, thử lại một lần nữa, rồi lịch sự trả lời người dùng
+         * "mình chưa có dữ liệu về cầu thủ này". KHÔNG hề có thông báo lỗi nào
+         * hiện ra — nhìn y như dữ liệu bị thiếu chứ không phải code sai.
+         *
+         * 👉 HAI BÀI HỌC:
+         *
+         *    1. Đừng suy ra hình dạng BẢNG từ hình dạng JSON của API. Tầng
+         *       service hoàn toàn có thể thêm trường tính toán vào giữa — và
+         *       ở đây nó làm đúng như vậy.
+         *
+         *    2. Khi trợ lý nói "chưa có dữ liệu", việc ĐẦU TIÊN phải làm là mở
+         *       log server ra xem, chứ đừng tin câu đó. runTool() có ghi log
+         *       nguyên văn lỗi gốc (`[AI] Tool search_player lỗi: ...`) —
+         *       dòng log đó chỉ thẳng vào chỗ sai trong vài giây, trong khi
+         *       đoán mò từ câu trả lời thì mất cả buổi.
+         */
+        `SELECT id, full_name, position, shirt_number, birth_date, current_club,
                 caps, goals, market_value_eur, hometown
          FROM players`
       );
@@ -356,7 +417,8 @@ export const TOOLS: ToolDefinition[] = [
           ten: p.full_name,
           vi_tri: POSITION_LABEL[p.position] ?? p.position,
           so_ao: p.shirt_number,
-          tuoi: p.age,
+          // Tuổi tính tại chỗ từ ngày sinh — xem ghi chú ở câu SELECT bên trên
+          tuoi: ageFromBirthDate(p.birth_date),
           cau_lac_bo: p.current_club,
           que_quan: p.hometown,
           so_tran_doi_tuyen: p.caps,
@@ -497,6 +559,154 @@ export const TOOLS: ToolDefinition[] = [
               ? `giảm ${Math.abs(vietnam.change)} bậc`
               : 'giữ nguyên thứ hạng',
         cap_nhat: vietnam.snapshot_date,
+      };
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // ➕ BXH BẢNG ĐẤU — đặc tả mục 5.8 + 10.3
+  // -------------------------------------------------------------------------
+  {
+    name: 'get_competition_standings',
+    description:
+      'Lấy bảng xếp hạng VÒNG BẢNG của giải đấu mà Việt Nam đang tham dự (vd vòng loại Asian Cup, ASEAN Cup): ' +
+      'thứ hạng, số trận, thắng-hoà-thua, hiệu số, điểm của từng đội, và luật đi tiếp. ' +
+      'Dùng khi hỏi "Việt Nam đứng thứ mấy bảng", "bảng đấu", "có đi tiếp không". ' +
+      'KHÔNG dùng cho xếp hạng FIFA (đó là get_fifa_ranking).',
+    parameters: { type: Type.OBJECT, properties: {} },
+    execute: async () => {
+      const data = await getStandings();
+
+      if (!data.season) {
+        return { found: false, message: 'Hiện Việt Nam không tham dự giải đấu nào có vòng bảng.' };
+      }
+
+      /**
+       * Chỉ gửi BẢNG CÓ VIỆT NAM, không gửi cả giải.
+       *
+       * Một giải 10 bảng × 4 đội = 40 dòng, vượt xa trần 2KB của kết quả tool
+       * (xem MAX_RESULT_CHARS) và toàn là dữ liệu người dùng không hỏi tới.
+       * Model nhận ít hơn thì trả lời đúng trọng tâm hơn — và rẻ hơn.
+       */
+      const group = data.groups.find((g) => g.rows.some((r) => r.is_vietnam)) ?? data.groups[0];
+
+      return {
+        found: true,
+        giai: `${data.season.competition_name} (${data.season.name})`,
+        bang: group?.group_name ?? '',
+        luat_di_tiep: data.season.advance_note,
+        // Câu tóm tắt dựng sẵn — model dùng nguyên văn được, khỏi tự đếm hạng
+        tom_tat: data.vietnam_summary,
+        bang_xep_hang: (group?.rows ?? []).map((r) => ({
+          hang: r.position,
+          doi: r.team_name,
+          tran: r.played,
+          thang_hoa_thua: `${r.won}-${r.drawn}-${r.lost}`,
+          hieu_so: r.goal_diff,
+          diem: r.points,
+        })),
+        cap_nhat: nowLabel(),
+      };
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // ➕ DANH SÁCH TRIỆU TẬP — đặc tả mục 5.8
+  // -------------------------------------------------------------------------
+  {
+    name: 'get_current_squad',
+    description:
+      'Lấy danh sách TRIỆU TẬP mới nhất của Đội tuyển Việt Nam cho đợt tập trung: các cầu thủ theo vị trí, ' +
+      'cầu thủ lần đầu được gọi, bổ sung, rút lui (kèm lý do). ' +
+      'Dùng khi hỏi "đợt này gọi ai", "có ai mới được triệu tập", "ai rút lui", "danh sách tập trung".',
+    parameters: { type: Type.OBJECT, properties: {} },
+    execute: async () => {
+      const data = await getCurrentSquad();
+      if (!data) return { found: false, message: 'Chưa có danh sách triệu tập nào được công bố.' };
+
+      const VI: Record<string, string> = { GK: 'thu_mon', DF: 'hau_ve', MF: 'tien_ve', FW: 'tien_dao' };
+
+      /**
+       * Chỉ gửi TÊN theo vị trí (không gửi CLB, số áo, ảnh…) để kết quả nằm
+       * gọn trong 2KB ngay cả với danh sách 30 người. Hỏi sâu về một cầu thủ
+       * thì model đã có search_player.
+       */
+      const theo_vi_tri: Record<string, string[]> = {};
+      for (const g of data.groups) {
+        theo_vi_tri[VI[g.position] ?? g.position] = g.members.map((m) => m.short_name ?? m.full_name);
+      }
+
+      return {
+        found: true,
+        dot: data.squad.title,
+        cong_bo: data.squad.announced_at,
+        so_cau_thu: data.squad.player_count,
+        theo_vi_tri,
+        lan_dau_duoc_goi: data.groups.flatMap((g) => g.members).filter((m) => m.is_new).map((m) => m.full_name),
+        bo_sung: data.added.map((m) => ({ ten: m.full_name, ghi_chu: m.note })),
+        rut_lui: data.withdrawn.map((m) => ({ ten: m.full_name, ly_do: m.note })),
+      };
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // ➕ BXH CẦU THỦ — đặc tả mục 12.5
+  // -------------------------------------------------------------------------
+  {
+    name: 'get_player_leaderboard',
+    description:
+      'Bảng xếp hạng CẦU THỦ Việt Nam trong một năm theo một chỉ số: điểm trung bình, bàn thắng, kiến tạo, ' +
+      'số lần xuất sắc nhất trận. Dùng khi hỏi "ai ghi nhiều bàn nhất năm nay", "ai điểm trung bình cao nhất", ' +
+      '"vua kiến tạo". KHÔNG dùng cho một trận cụ thể (đó là get_player_ratings).',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        metric: {
+          type: Type.STRING,
+          enum: ['avg_rating', 'goals', 'assists', 'motm'],
+          description: 'Chỉ số xếp hạng. Mặc định avg_rating.',
+        },
+        year: { type: Type.STRING, description: 'Năm, ví dụ "2026". Bỏ trống = năm mới nhất có dữ liệu.' },
+      },
+    },
+    execute: async (args) => {
+      /**
+       * 🔐 Tham số từ AI cũng là DỮ LIỆU KHÔNG ĐÁNG TIN (nguyên tắc 3 ở đầu file).
+       * Model có thể "bịa" metric = 'salary' hay year = 'năm ngoái' — kiểm tra
+       * lại bằng danh sách trắng và regex, sai thì dùng mặc định.
+       */
+      const allowed = ['avg_rating', 'goals', 'assists', 'motm'] as const;
+      const metric = allowed.find((m) => m === args.metric) ?? 'avg_rating';
+      const yearArg = toText(args.year, 4);
+
+      let year = /^\d{4}$/.test(yearArg) ? yearArg : '';
+      if (!year) {
+        const { rows } = await query<{ period_key: string }>(
+          `SELECT period_key FROM player_rating_stats WHERE period_type = 'year'
+           ORDER BY period_key DESC LIMIT 1`
+        );
+        year = rows[0]?.period_key ?? String(new Date().getFullYear());
+      }
+
+      const board = await getLeaderboard('year', year, metric, 5);
+      if (board.rows.length === 0) {
+        return { found: false, message: `Chưa có số liệu xếp hạng cầu thủ năm ${year}.` };
+      }
+
+      return {
+        found: true,
+        nam: year,
+        chi_so: metric,
+        ghi_chu:
+          metric === 'avg_rating'
+            ? `Chỉ xếp hạng cầu thủ đá tối thiểu ${board.min_minutes} phút trong năm; bằng điểm thì đồng hạng.`
+            : 'Bằng chỉ số thì đồng hạng.',
+        bang: board.rows.map((r) => ({
+          hang: r.rank,
+          ten: r.full_name,
+          gia_tri: r.value,
+          so_tran: r.matches,
+        })),
       };
     },
   },

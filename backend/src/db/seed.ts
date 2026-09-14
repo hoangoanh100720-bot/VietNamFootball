@@ -56,6 +56,8 @@ import {
   TV_CHANNELS,
   VALUE_HISTORY,
 } from '@/db/seeds/featureData';
+import { PLAYER_PHOTOS } from '@/db/seeds/playerPhotos';
+import { applyRealSquad } from '@/db/realSquad';
 
 export async function seedDatabase(): Promise<void> {
   /**
@@ -146,6 +148,15 @@ export async function seedDatabase(): Promise<void> {
       playerIdByShirt.set(p.shirt_number, rows[0]!.id);
     }
     logger.info('Đã thêm ' + PLAYERS.length + ' cầu thủ');
+
+    // Ảnh chân dung thật (Wikimedia Commons) — xem seeds/playerPhotos.ts
+    for (const ph of PLAYER_PHOTOS) {
+      await tx.query(
+        `UPDATE ${ph.table} SET photo_url = $1, photo_credit = $2, photo_source_url = $3 WHERE full_name = $4`,
+        ['/static/players/' + ph.file, ph.credit, ph.source, ph.full_name]
+      );
+    }
+    logger.info('Đã gắn ' + PLAYER_PHOTOS.length + ' ảnh chân dung');
 
     // =====================================================================
     // 4. LỊCH SỬ CLB
@@ -585,6 +596,14 @@ export async function seedDatabase(): Promise<void> {
       'Đã thêm ' + valueRows + ' mốc giá trị cầu thủ + ' + KB_DOCUMENTS.length + ' tài liệu cho trợ lý AI'
     );
   });
+
+  /**
+   * ⭐ Thay phần CẦU THỦ mẫu bằng đội hình thật (ASEAN Cup 2026) — xem db/realSquad.ts.
+   * Chạy SAU phần mẫu: trận/đội hình mẫu ở trên vẫn cần 26 cầu thủ mẫu để dựng,
+   * rồi bước này mới cho họ nghỉ và đưa người thật vào.
+   */
+  const real = await withTransaction((tx) => applyRealSquad(tx));
+  logger.info(`Đội hình thật: cập nhật ${real.updated}, thêm ${real.inserted}, cho nghỉ ${real.retired}`);
 
   logger.info('===== SEED HOÀN TẤT =====');
 }

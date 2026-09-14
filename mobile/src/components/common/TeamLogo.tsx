@@ -20,6 +20,7 @@ import { View } from 'react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/theme';
 import { AppText } from './Text';
+import { resolveMediaUrl } from '@/utils/media';
 
 /** Logo đội tuyển */
 export function TeamLogo({
@@ -54,7 +55,7 @@ export function TeamLogo({
     >
       {uri ? (
         <Image
-          source={{ uri }}
+          source={{ uri: resolveMediaUrl(uri) ?? undefined }}
           style={{ width: size * 0.72, height: size * 0.72 }}
           contentFit="contain"
           // Mờ dần trong 200ms khi ảnh tải xong
@@ -82,6 +83,11 @@ export function TeamLogo({
 /**
  * Ảnh đại diện cầu thủ.
  * Không có ảnh -> hiện chữ cái đầu của họ tên, ví dụ "Nguyễn Quang Hải" -> "NH".
+ *
+ * Ảnh trong DB là đường dẫn tương đối "/static/players/..." -> ghép với gốc
+ * server qua resolveMediaUrl. Ảnh đã được cắt vuông lấy mặt làm tâm từ trước,
+ * nhưng vẫn neo contentPosition "top": nếu sau này thêm ảnh dọc chưa cắt, phần
+ * bị cắt đi là chân/áo chứ không phải đỉnh đầu.
  */
 export function PlayerAvatar({
   uri,
@@ -105,6 +111,8 @@ export function PlayerAvatar({
     .join('')
     .toUpperCase();
 
+  const src = resolveMediaUrl(uri);
+
   return (
     <View style={{ width: size, height: size }}>
       <View
@@ -120,11 +128,12 @@ export function PlayerAvatar({
           overflow: 'hidden',
         }}
       >
-        {uri ? (
+        {src ? (
           <Image
-            source={{ uri }}
+            source={{ uri: src }}
             style={{ width: size, height: size }}
             contentFit="cover"
+            contentPosition="top"
             transition={200}
             cachePolicy="memory-disk"
             accessibilityLabel={`Ảnh ${name}`}

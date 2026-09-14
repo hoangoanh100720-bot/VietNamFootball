@@ -103,6 +103,9 @@ export interface Player {
   market_value_eur: string | number; // Postgres trả BIGINT dạng chuỗi -> xử lý ở service
   current_club: string | null;
   photo_url: string | null;
+  /** Ghi công ảnh (bắt buộc với CC BY): "tác giả · giấy phép · Wikimedia Commons" */
+  photo_credit: string | null;
+  photo_source_url: string | null;
   caps: number;
   goals: number;
   is_active: boolean;
@@ -115,6 +118,8 @@ export interface Coach {
   nationality: string | null;
   birth_date: string | null;
   photo_url: string | null;
+  photo_credit: string | null;
+  photo_source_url: string | null;
   start_date: string | null;
   contract_end: string | null;
   biography: string | null;
@@ -138,6 +143,8 @@ export interface Match {
   away_score: number;
   minute: number | null;
   attendance: number | null;
+  /** Kênh phát sóng, vd ['VTV5', 'FPT Play']. Mảng rỗng = chưa có thông tin */
+  tv_channels: string[];
 }
 
 /** Trận đấu kèm thông tin đội (kết quả của câu JOIN) — đây là thứ API trả về */

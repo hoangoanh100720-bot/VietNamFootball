@@ -98,7 +98,9 @@ export const THEMES: SeedTheme[] = [
   {
     code: 'national-day', name: 'Quốc khánh 2/9', kind: 'event', is_selectable: true,
     palette_light: { accent: '#D0121B', accentText: '#A80E16', gold: '#C79200' },
-    palette_dark: { accent: '#E8291F', accentText: '#FF6A5E', gold: '#FFD633' },
+    // ⚠️ Từng là #E8291F: chữ trắng trên nút chỉ đạt 4.4:1 (dưới chuẩn 4.5) — do
+    // feature-test.ts phát hiện. Sửa đậm hơn một chút, xem migration 007.
+    palette_dark: { accent: '#E3241B', accentText: '#FF6A5E', gold: '#FFD633' },
     assets: { effect: 'fireworks', greeting: 'Chúc mừng Quốc khánh 2/9' },
   },
   {

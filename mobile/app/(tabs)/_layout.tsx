@@ -35,16 +35,36 @@
 import { useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
+import { TricolorStripe } from '@/components/decor';
 import { useSettingsStore } from '@/store/settingsStore';
 
 /** Cỡ icon tab cố định — xem giải thích ở tabBarLabelStyle bên dưới */
 const ICON_SIZE = 22;
+/** Senior mode: icon 30, nhãn 15 (bảng thông số ARCHITECTURE.md mục 7.2) */
+const SENIOR_ICON_SIZE = 30;
 
 export default function TabsLayout() {
   const t = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  /**
+   * ⭐ SENIOR MODE: 5 TAB -> 3 TAB (mục 7.2)
+   *
+   *   Thường :  Giới thiệu · Trận đấu · Đội hình · Cầu thủ · Thống kê
+   *   Senior :               Trận đấu · Đội hình · Cài đặt
+   *
+   * Cách ẩn tab trong Expo Router là "href: null" — tab vẫn tồn tại (đường dẫn
+   * vẫn mở được, ví dụ từ thông báo đẩy), chỉ không hiện trên thanh tab.
+   * KHÔNG xoá hẳn khối <Tabs.Screen>: Expo Router sẽ tự thêm lại tab đó với
+   * tên file làm nhãn ("players") — còn tệ hơn là không ẩn.
+   */
+  const senior = t.isSenior;
+  const hideInSenior = senior ? null : undefined;
+  const iconSize = senior ? SENIOR_ICON_SIZE : ICON_SIZE;
 
   /**
    * ⭐ ĐIỀU HƯỚNG SANG PHẦN GIỚI THIỆU KHI MỞ APP LẦN ĐẦU (mục 4.1).
@@ -78,10 +98,19 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: t.colors.textFaint,
 
         // ----- Kiểu dáng thanh tab -----
+        /**
+         * ⭐ Nền thanh tab tự vẽ: màu surface + VẠCH BA MÀU đỏ·vàng·xanh ở mép trên,
+         * thay cho đường viền xám. tabBarBackground phủ tuyệt đối sau các ô tab
+         * nên KHÔNG làm đổi chiều cao thư viện tự tính (xem cảnh báo bên dưới).
+         */
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: t.colors.surface }}>
+            <TricolorStripe />
+          </View>
+        ),
         tabBarStyle: {
           backgroundColor: t.colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: t.colors.border,
+          borderTopWidth: 0,
           /**
            * ⚠️ CỐ Ý KHÔNG đặt height / paddingBottom ở đây.
            *
@@ -101,12 +130,25 @@ export default function TabsLayout() {
             },
             android: { elevation: 8 },
           }),
+          /**
+           * ⚠️ NGOẠI LỆ DUY NHẤT cho luật "không tự đặt height" ở trên — CHỈ ở Senior mode.
+           *
+           * Chiều cao thư viện tự tính dành cho icon 22 + chữ 11. Icon 30 + chữ 15
+           * cần: 8 (đệm trên) + 32 (ô icon) + 20 (ô chữ) + 12 (đệm dưới) = 72pt,
+           * cộng vùng an toàn đáy máy (thanh home iPhone).
+           *
+           * 🐛 Bản đầu tính 6 + 32 + 20 + 6 = 64pt và ẢNH CHỤP khi chạy app cho thấy
+           * nhãn "Trận đấu", "Cài đặt" vẫn sát/cụt mép dưới: phép tính quên phần
+           * đệm nội bộ mà mỗi ô tab của thư viện tự thêm quanh nhãn. Phép tính giúp
+           * khỏi đoán mò, nhưng chỉ ảnh chụp thật mới xác nhận được là đúng.
+           */
+          ...(senior ? { height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom } : {}),
         },
 
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: senior ? 15 : 11,
           // lineHeight rõ ràng: chữ 11px cần ô cao 14px (xem tabBarIconStyle)
-          lineHeight: 14,
+          lineHeight: senior ? 20 : 14,
           fontWeight: t.fontWeight.semibold,
           // Không cho ô chữ bị bóp nhỏ hơn lineHeight (mặc định flex-shrink: 1)
           flexShrink: 0,
@@ -119,7 +161,7 @@ export default function TabsLayout() {
          * Hạ ô icon xuống 24px: 24 + 14 = 38px, vừa khít.
          * Bài học: khi sửa giao diện hai lần không ăn, hãy ĐO chứ đừng đoán tiếp.
          */
-        tabBarIconStyle: { height: 24 },
+        tabBarIconStyle: { height: senior ? 32 : 24 },
 
         // Chạm vào tab có rung nhẹ (chỉ Android hỗ trợ sẵn)
         tabBarHideOnKeyboard: true,
@@ -139,10 +181,11 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="intro"
         options={{
+          href: hideInSenior, // ẩn ở Senior mode (mục 7.2)
           title: 'Giới thiệu',
           tabBarAccessibilityLabel: 'Tab Giới thiệu và thành tích đội tuyển',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'flag' : 'flag-outline'} size={ICON_SIZE} color={color} />
+            <Ionicons name={focused ? 'flag' : 'flag-outline'} size={iconSize} color={color} />
           ),
         }}
       />
@@ -157,7 +200,7 @@ export default function TabsLayout() {
             <Ionicons
               // TÔ ĐẶC khi đang chọn, VIỀN RỖNG khi không
               name={focused ? 'football' : 'football-outline'}
-              size={ICON_SIZE}
+              size={iconSize}
               color={color}
             />
           ),
@@ -171,7 +214,7 @@ export default function TabsLayout() {
           title: 'Đội hình',
           tabBarAccessibilityLabel: 'Tab Đội hình ra sân',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={ICON_SIZE} color={color} />
+            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={iconSize} color={color} />
           ),
         }}
       />
@@ -180,10 +223,11 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="players"
         options={{
+          href: hideInSenior, // ẩn ở Senior mode (mục 7.2)
           title: 'Cầu thủ',
           tabBarAccessibilityLabel: 'Tab Cầu thủ và huấn luyện viên',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'people' : 'people-outline'} size={ICON_SIZE} color={color} />
+            <Ionicons name={focused ? 'people' : 'people-outline'} size={iconSize} color={color} />
           ),
         }}
       />
@@ -192,10 +236,28 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'AI & BXH',
+          href: hideInSenior, // ẩn ở Senior mode (mục 7.2)
+          title: 'Thống kê',
           tabBarAccessibilityLabel: 'Tab Dự đoán AI và bảng xếp hạng FIFA',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={ICON_SIZE} color={color} />
+            <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={iconSize} color={color} />
+          ),
+        }}
+      />
+
+      {/* ---------------- TAB CÀI ĐẶT — CHỈ SENIOR MODE ---------------- */}
+      {/*
+        Giao diện thường: ẩn (Cài đặt mở từ ảnh đại diện góc phải).
+        Senior mode: hiện ở cuối thanh tab, để công tắc TẮT Senior mode luôn dễ tìm.
+      */}
+      <Tabs.Screen
+        name="account"
+        options={{
+          href: senior ? undefined : null,
+          title: 'Cài đặt',
+          tabBarAccessibilityLabel: 'Tab Cài đặt',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={iconSize} color={color} />
           ),
         }}
       />

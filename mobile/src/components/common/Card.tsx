@@ -96,11 +96,12 @@ export function Badge({
   const tones: Record<BadgeTone, { bg: string; fg: string }> = {
     neutral: { bg: t.colors.surfaceRaised, fg: t.colors.textMuted },
     accent: { bg: t.colors.accentSoft, fg: t.colors.accentText },
-    live: { bg: t.colors.accent, fg: '#FFFFFF' }, // nền ĐẶC để nổi bật nhất app
+    live: { bg: t.colors.accent, fg: t.colors.accentFg }, // nền ĐẶC để nổi bật nhất app
     win: { bg: t.colors.winSoft, fg: t.colors.win },
     draw: { bg: t.colors.drawSoft, fg: t.colors.draw },
     lose: { bg: t.colors.loseSoft, fg: t.colors.lose },
-    gold: { bg: t.colors.goldSoft, fg: t.colors.gold },
+    // goldText chứ không phải gold: ở chế độ sáng vàng sao làm chữ chỉ đạt 1.7:1
+    gold: { bg: t.colors.goldSoft, fg: t.colors.goldText },
   };
 
   const { bg, fg } = tones[tone];
@@ -225,13 +226,14 @@ export function SectionHeader({
         */}
         <View
           style={{
-            width: 3,
+            width: 4,
             height: 14,
             borderRadius: 2,
             backgroundColor: t.colors.bamboo,
           }}
         />
-        <AppText variant="overline" tone="muted">
+        {/* Chữ tiêu đề cũng mang sắc xanh tre thay vì xám mờ — màu chủ đạo thứ ba hiện rõ */}
+        <AppText variant="overline" style={{ color: t.colors.bambooText }}>
           {title}
         </AppText>
       </View>

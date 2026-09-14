@@ -55,7 +55,7 @@
  *      biến mất hoàn toàn. Chi tiết: docs/DESIGN-SYSTEM.md mục 2.
  */
 
-import { View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -180,7 +180,8 @@ export default function PlayerDetailScreen() {
           <PlayerAvatar
             uri={player.photo_url}
             name={player.full_name}
-            size={104}
+            // Ảnh mặt thật là thứ đầu tiên người xem tìm ở màn này -> đủ to để nhận ra
+            size={128}
             shirtNumber={player.shirt_number}
           />
 
@@ -218,6 +219,27 @@ export default function PlayerDetailScreen() {
             <HeroStat label="Bàn thắng" value={String(player.goals)} />
             <HeroStat label="Giá trị" value={formatEuro(player.market_value_eur)} />
           </View>
+
+          {/*
+            ⚖️ GHI CÔNG ẢNH — bắt buộc theo giấy phép CC BY / CC BY-SA của ảnh
+            Wikimedia Commons. Chạm để mở trang gốc của ảnh.
+          */}
+          {player.photo_url && player.photo_credit && (
+            <Pressable
+              onPress={() => player.photo_source_url && void Linking.openURL(player.photo_source_url)}
+              accessibilityRole="link"
+              accessibilityLabel={`Nguồn ảnh: ${player.photo_credit}`}
+              hitSlop={8}
+            >
+              <AppText
+                variant="caption"
+                center
+                style={{ color: t.static.onDark.textFaint, fontSize: t.fontSize.xs }}
+              >
+                Ảnh: {player.photo_credit}
+              </AppText>
+            </Pressable>
+          )}
         </LinearGradient>
 
         <View style={{ paddingHorizontal: t.spacing.lg }}>
@@ -225,7 +247,9 @@ export default function PlayerDetailScreen() {
           <SectionHeader title="Thông tin cá nhân" />
 
           <Card>
-            <InfoRow label="Quê quán" value={player.hometown ?? '—'} />
+            {/* "Nơi sinh" chứ không phải "Quê quán": dữ liệu lấy theo nơi sinh trên Wikipedia
+                (Xuân Son sinh ở Brasil, Patrik ở Slovakia — đó không phải quê gốc) */}
+            <InfoRow label="Nơi sinh" value={player.hometown ?? '—'} />
             <InfoRow
               label="Ngày sinh"
               value={
@@ -312,9 +336,13 @@ export default function PlayerDetailScreen() {
                         {club.is_loan && <Badge label="CHO MƯỢN" tone="neutral" size="sm" />}
                       </View>
 
+                      {/*
+                        CHỈ HIỆN NĂM: nguồn dữ liệu (infobox Wikipedia) chỉ ghi "2019–2021",
+                        ngày 01/01 và 31/12 trong DB là quy ước lưu trữ. In ra "01/01/2019"
+                        là khoe một độ chính xác mà dữ liệu không có.
+                      */}
                       <AppText variant="caption" tone="faint" tabular>
-                        {club.from_date ? formatDate(club.from_date) : '?'} —{' '}
-                        {club.to_date ? formatDate(club.to_date) : 'nay'}
+                        {formatYears(club.from_date, club.to_date)}
                       </AppText>
                     </View>
 
@@ -347,6 +375,17 @@ export default function PlayerDetailScreen() {
       </Screen>
     </>
   );
+}
+
+/**
+ * Khoảng năm ở một CLB: "2019 – 2021", "2025 – nay", hoặc "2020" khi vào và rời
+ * trong cùng năm (tránh dòng "2020 – 2020" trông như lỗi).
+ */
+function formatYears(from: string | null, to: string | null): string {
+  const a = from ? new Date(from).getFullYear() : null;
+  if (to === null) return `${a ?? '?'} – nay`;
+  const b = new Date(to).getFullYear();
+  return a === b ? String(b) : `${a ?? '?'} – ${b}`;
 }
 
 /** Ô số liệu trong phần đầu (nền tối) */

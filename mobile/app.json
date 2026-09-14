@@ -28,7 +28,7 @@
     "android": {
       "package": "com.vietnamfootball.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0A1A12",
+        "backgroundColor": "#DA251D",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -54,7 +54,20 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0A1A12",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0A1A12"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -73,6 +86,7 @@
       "SEA Games",
       "xếp hạng FIFA"
     ],
-    "//_keywords": "Dùng cho ASO trên cửa hàng ứng dụng. ⚠️ KHÔNG nhồi các từ này vào thẻ meta keywords của web — Google đã bỏ dùng thẻ đó từ 2009."
+    "//_keywords": "Dùng cho ASO trên cửa hàng ứng dụng. ⚠️ KHÔNG nhồi các từ này vào thẻ meta keywords của web — Google đã bỏ dùng thẻ đó từ 2009.",
+    "//_splash": "Màn khởi động gốc: lá cờ đỏ sao vàng trên nền xanh tre sẫm. Khối \"splash\" dùng cho Expo Go; plugin expo-splash-screen bên dưới dùng cho bản build thật. Ảnh sinh bằng: node scripts/generate-brand-assets.js"
   }
 }

@@ -213,13 +213,21 @@ export default function IntroTab() {
             */}
             <View style={{ alignItems: 'center', paddingVertical: t.spacing.sm }}>
               <RiceWreath size={72}>
+                {/*
+                  ⚠️ DÙNG variant="display", KHÔNG tự đặt fontSize trong style.
+
+                  🐛 LỖI ĐÃ GẶP THẬT (thấy trên ảnh chụp khi chạy app): bản trước viết
+                  style={{ fontSize: t.fontSize.display }} mà không có variant. AppText
+                  mặc định variant 'body' -> lineHeight của chữ 15px (~23px). Chữ 40px bị
+                  nhét vào dòng cao 23px nên TRÀN xuống, đè lên chữ "LẦN VÔ ĐỊCH" bên dưới.
+
+                  Variant mang theo CẢ cỡ chữ LẪN độ cao dòng khớp nhau. Đổi cỡ chữ thì
+                  đổi variant — đừng chỉ ghi đè một nửa cặp đôi đó.
+                */}
                 <AppText
+                  variant="display"
                   tabular
-                  style={{
-                    fontSize: t.fontSize.display,
-                    fontWeight: t.fontWeight.black,
-                    color: t.colors.goldText,
-                  }}
+                  style={{ fontWeight: t.fontWeight.black, color: t.colors.goldText }}
                 >
                   {data.trophies.champion}
                 </AppText>
@@ -328,14 +336,7 @@ function TrophyStat({ value, label }: { value: number; label: string }) {
 
   return (
     <View style={{ alignItems: 'center', gap: 2 }}>
-      <AppText
-        tabular
-        style={{
-          fontSize: t.fontSize.xl,
-          fontWeight: t.fontWeight.bold,
-          color: t.colors.text,
-        }}
-      >
+      <AppText variant="h1" tabular style={{ fontWeight: t.fontWeight.bold }}>
         {value}
       </AppText>
       <AppText variant="caption" tone="faint">

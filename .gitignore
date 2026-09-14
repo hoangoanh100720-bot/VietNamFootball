@@ -27,3 +27,6 @@ backend/data/
 
 # Bản web xuất ra (sinh lại bằng: cd mobile && npx expo export --platform web)
 mobile/dist/
+
+# Kết quả chạy bộ đánh giá AI (mỗi lần một file, không đưa lên git)
+backend/eval-results/

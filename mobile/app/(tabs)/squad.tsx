@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { View } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
 import { Screen } from '@/components/common/Screen';
@@ -30,6 +30,7 @@ import type { LineupPlayer } from '@/types';
 import { HeroBanner } from '@/components/decor';
 import { Seo } from '@/components/common/Seo';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { CallUpList } from '@/components/squad/CallUpList';
 
 export default function SquadTab() {
   const t = useTheme();
@@ -53,8 +54,9 @@ export default function SquadTab() {
    *
    *   'current'    — đội hình dự kiến, chưa có điểm
    *   'last-match' — trận vừa đá, CÓ điểm + thẻ trên đầu cầu thủ
+   *   'callup'     — ➕ danh sách TRIỆU TẬP của đợt tập trung (đặc tả 5.8)
    */
-  const [segment, setSegment] = useState<'current' | 'last-match'>('current');
+  const [segment, setSegment] = useState<'current' | 'last-match' | 'callup'>('current');
 
   /**
    * Truy vấn đội hình trận vừa đá.
@@ -73,8 +75,15 @@ export default function SquadTab() {
     staleTime: 60 * 60 * 1000, // điểm đã chốt thì không đổi nữa
   });
 
+  const queryClient = useQueryClient();
   const onRefresh = () => {
-    void Promise.all([squadQuery.refetch(), valueQuery.refetch(), lastMatchQuery.refetch()]);
+    void Promise.all([
+      squadQuery.refetch(),
+      valueQuery.refetch(),
+      lastMatchQuery.refetch(),
+      // Danh sách triệu tập nằm trong component con -> đánh dấu cũ theo khoá
+      queryClient.invalidateQueries({ queryKey: ['callups'] }),
+    ]);
   };
 
   // Dữ liệu đang hiển thị, tuỳ phân đoạn
@@ -114,7 +123,8 @@ export default function SquadTab() {
       {/* =================== THANH CHỌN PHÂN ĐOẠN =================== */}
       <SegmentedControl
         segments={[
-          { value: 'current', label: 'Đội hình dự kiến' },
+          // 'Dự kiến' thay cho 'Đội hình dự kiến': ba phân đoạn trên màn 360px, nhãn dài bị cắt '…'
+          { value: 'current', label: 'Dự kiến' },
           {
             value: 'last-match',
             label: 'Trận vừa đá',
@@ -126,6 +136,7 @@ export default function SquadTab() {
              */
             showDot: lastMatchQuery.data != null && segment !== 'last-match',
           },
+          { value: 'callup', label: 'Triệu tập' },
         ]}
         value={segment}
         onChange={setSegment}
@@ -147,6 +158,15 @@ export default function SquadTab() {
 
       <View style={{ height: t.spacing.md }} />
 
+      {/*
+        ➕ PHÂN ĐOẠN TRIỆU TẬP — thay TOÀN BỘ phần sơ đồ sân + giá trị đội hình.
+        Danh sách triệu tập là một khái niệm khác đội hình ra sân (xem đầu file
+        components/squad/CallUpList.tsx), nên không trộn chung một giao diện.
+      */}
+      {segment === 'callup' ? (
+        <CallUpList />
+      ) : (
+      <>
       {/* =================== SƠ ĐỒ SÂN =================== */}
       {activeQuery.isLoading ? (
         <Skeleton width="100%" height={480} radius={t.radius.lg} />
@@ -257,6 +277,8 @@ export default function SquadTab() {
         </>
       ) : (
         <LoadingList count={2} />
+      )}
+      </>
       )}
     </Screen>
   );

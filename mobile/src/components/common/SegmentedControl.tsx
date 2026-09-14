@@ -90,14 +90,15 @@ export function SegmentedControl<T extends string>({
               flexDirection: 'row',
               gap: 5,
               /**
-               * Ô đang chọn: nền NỔI LÊN (surface sáng hơn surfaceSunken).
+               * Ô đang chọn: nền ĐẶC MÀU ĐỎ CỜ, chữ trắng.
                * Ô không chọn: trong suốt, lộ nền lõm phía sau.
                *
-               * Đây là nguyên tắc "càng nổi càng sáng" của chế độ tối — xem
-               * theme/colors.ts. Ở chế độ sáng thì surface là trắng, cũng nổi
-               * hơn nền lõm màu be, nên cùng một code chạy đúng cả hai chế độ.
+               * Bản trước dùng nền surface (trắng/xám) cho ô đang chọn — đúng
+               * nguyên tắc "càng nổi càng sáng" nhưng cả thanh gần như không có
+               * màu. Đây là nút điều hướng chính của màn hình, đúng loại việc
+               * mà đỏ cờ được dành cho (xem tỷ lệ 80/15/5 trong theme/colors.ts).
                */
-              backgroundColor: selected ? t.colors.surface : t.static.transparent,
+              backgroundColor: selected ? t.colors.accent : t.static.transparent,
             }}
           >
             <AppText
@@ -110,20 +111,23 @@ export function SegmentedControl<T extends string>({
                  * đang được chọn.
                  */
                 fontWeight: selected ? t.fontWeight.bold : t.fontWeight.medium,
-                color: selected ? t.colors.accentText : t.colors.textMuted,
+                color: selected ? t.colors.accentFg : t.colors.textMuted,
               }}
             >
               {seg.label}
             </AppText>
 
-            {/* Chấm đỏ "Mới" */}
+            {/*
+              Chấm "Mới" — đỏ trên ô thường, nhưng VÀNG SAO trên ô đang chọn:
+              chấm đỏ đặt trên nền đỏ thì biến mất.
+            */}
             {seg.showDot && (
               <View
                 style={{
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: t.colors.accent,
+                  backgroundColor: selected ? t.colors.gold : t.colors.accent,
                 }}
               />
             )}

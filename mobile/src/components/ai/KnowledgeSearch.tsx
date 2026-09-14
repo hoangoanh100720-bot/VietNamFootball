@@ -239,7 +239,19 @@ export function KnowledgeSearch() {
           </Card>
         )}
 
-        {submitted && !searchQuery.isFetching && !searchQuery.isError && hits.length === 0 && (
+        {/*
+          ⚠️ "submitted !== ''" CHỨ KHÔNG PHẢI "submitted &&".
+
+          🐛 LỖI ĐÃ GẶP THẬT khi chạy app trên trình duyệt: submitted mặc định là
+          chuỗi RỖNG. Viết "{submitted && <Card/>}" thì biểu thức trả về chính
+          chuỗi '' — và React render '' ra như một nút chữ nằm trần trong <View>.
+          Trên web hiện thông báo đỏ "Unexpected text node: . A text node cannot
+          be a child of a <View>", trên điện thoại có thể làm app văng lỗi.
+
+          Quy tắc: vế trái của && trong JSX phải là BOOLEAN thật. Với chuỗi và
+          số (số 0 cũng bị render ra y hệt!) hãy so sánh tường minh.
+        */}
+        {submitted !== '' && !searchQuery.isFetching && !searchQuery.isError && hits.length === 0 && (
           <Card>
             <AppText variant="caption" tone="muted">
               Chưa tìm thấy nội dung liên quan tới “{submitted}”. Thử hỏi cách khác, hoặc
@@ -289,7 +301,8 @@ export function KnowledgeSearch() {
                 {hit.content}
               </AppText>
 
-              {hit.source_url && (
+              {/* Ba ngôi thay cho &&: source_url có thể là '' -> && sẽ render chuỗi rỗng trần trong View */}
+              {hit.source_url ? (
                 <Pressable
                   onPress={() => void Linking.openURL(hit.source_url!)}
                   accessibilityLabel={'Mở nguồn: ' + hit.title}
@@ -305,7 +318,7 @@ export function KnowledgeSearch() {
                     Xem nguồn · {safeHost(hit.source_url)}
                   </AppText>
                 </Pressable>
-              )}
+              ) : null}
             </View>
           </Card>
         ))}

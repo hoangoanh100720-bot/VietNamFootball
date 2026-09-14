@@ -77,15 +77,7 @@ export default function NotFoundScreen() {
           {/* Lá cờ làm điểm neo thị giác: ngay cả trang lỗi cũng phải "thuộc về" app này */}
           <VietnamFlag size={64} opacity={0.9} />
 
-          <AppText
-            tabular
-            center
-            style={{
-              fontSize: t.fontSize.display,
-              fontWeight: t.fontWeight.black,
-              color: t.colors.accentText,
-            }}
-          >
+          <AppText variant="display" tabular center style={{ fontWeight: t.fontWeight.black, color: t.colors.accentText }}>
             404
           </AppText>
 

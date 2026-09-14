@@ -174,6 +174,11 @@ Nếu bạn mới học, đọc theo lộ trình này sẽ dễ hiểu nhất. M
 | 11 | `src/components/decor/HeroBanner.tsx` | ⭐ Bốn lớp chồng nhau, giữ chữ luôn đọc được |
 | 12 | `app/+html.tsx` | ⭐ Vỏ HTML bản web — nền tảng của toàn bộ SEO |
 | 13 | `app/(tabs)/intro.tsx` | ⭐ Tab 1: tủ danh hiệu, dòng thời gian, chữ thu gọn |
+| 14 | `src/components/ai/AiAssistant.tsx` | ⭐⭐ Màn chat AI: useMutation vs useQuery, trí nhớ hội thoại, đọc to |
+| 15 | `app/(tabs)/ai.tsx` | ⭐ Khung kéo ngang, bẫy `flex` trong ScrollView ngang |
+| 16 | `src/theme/themes.ts` + `src/hooks/useActiveTheme.ts` | ⭐ Theme sự kiện: danh sách trắng token, socket + hẹn giờ |
+| 17 | `src/components/senior/SeniorHome.tsx` | ⭐ Viết thành CÂU thay vì ký hiệu, rẽ nhánh hook an toàn |
+| 18 | `src/components/stats/PlayerLeaderboard.tsx` | Đồng hạng, `placeholderData` chống nhấp nháy |
 
 ---
 
@@ -193,6 +198,13 @@ npm run typecheck  # kiểm tra lỗi kiểu dữ liệu
 npm test           # kiểm thử nhanh toàn bộ API (server phải đang chạy)
 npm run test:devices    # kiểm thử luồng đăng ký thông báo
 npm run test:rating     # ⭐ 44 phép thử engine chấm điểm (KHÔNG cần server)
+npm run test:features   # ⭐ 48 phép thử: theme/tương phản, BXH, cursor, ngân hàng câu hỏi AI (KHÔNG cần server)
+
+# --- Đánh giá chất lượng trợ lý AI (ARCHITECTURE.md mục 10.7) ---
+npm run eval:ai -- --free             # 10 câu bẫy cá độ, 0 lượt gọi Gemini — chạy thoải mái
+npm run eval:ai -- --limit 14         # mỗi nhóm 1 câu (~28 lượt gọi Gemini)
+npm run eval:ai                       # đủ 150 câu (~300 lượt gọi — cần gói trả phí)
+npm run eval:ai -- --update-baseline  # lưu kết quả làm mốc; lần sau tụt >5% thì thoát mã 1 (chặn deploy)
 
 # --- Cào dữ liệu & tìm kiếm AI ---
 npm run crawl -- <url>  # cào một trang web vào kho tri thức (xem mục nâng cao)
@@ -200,7 +212,9 @@ npm run ocr -- <file>   # đọc chữ trong ảnh/PDF bằng Gemini
 npm run index           # nhúng vector cho các đoạn còn thiếu
 ```
 
-> ⚠️ `db:reset`, `db:seed`, `db:live` đều cần **tắt server trước** (`Ctrl + C`).
+> ⚠️ `db:reset`, `db:seed`, `db:live`, `migrate`, `eval:ai` đều cần **tắt server trước** (`Ctrl + C`).
+>
+> 🛟 **Đừng chạy `db:reset` khi thấy lỗi "KHÔNG MỞ ĐƯỢC DATABASE PGLITE"** — lệnh đó xoá luôn kho tri thức đã cào (tốn quota Gemini để dựng lại). Thường nguyên nhân là **hai server cùng chạy**: tắt bớt một cái là xong. Nếu dữ liệu hỏng thật: `git checkout -- backend/data/pgdata` để về bản đã commit.
 > PGlite chỉ cho phép một tiến trình mở database cùng lúc — đó là bản chất của
 > cơ sở dữ liệu nhúng, và cũng là một lý do production phải dùng PostgreSQL thật.
 
@@ -540,7 +554,7 @@ Dịch vụ PostgreSQL miễn phí: [Neon](https://neon.tech), [Supabase](https:
 | Phần | Trạng thái |
 |---|---|
 | Backend: nền tảng, log, xử lý lỗi | ✅ |
-| Database: schema đầy đủ (migration `001`–`005`) + dữ liệu mẫu cho mọi tính năng | ✅ |
+| Database: schema đầy đủ (migration `001`–`007`) + dữ liệu mẫu cho mọi tính năng | ✅ |
 | Auth: bcrypt, JWT, xoay vòng refresh token | ✅ |
 | API: trận đấu, đội hình, cầu thủ, HLV, BXH | ✅ |
 | AI: Gemini + mô hình thống kê dự phòng | ✅ |
@@ -562,7 +576,14 @@ Dịch vụ PostgreSQL miễn phí: [Neon](https://neon.tech), [Supabase](https:
 | ⭐ Crawler web có tuân thủ robots.txt + giãn nhịp | ✅ |
 | ⭐ OCR ảnh/PDF bằng Gemini | ✅ |
 | ⭐ Tìm kiếm AI lai (vector + từ khoá, có bỏ dấu) | ✅ |
-| ⭐ Giao diện hỏi đáp kho tri thức trong tab Dự đoán | ✅ |
+| ⭐ Giao diện hỏi đáp kho tri thức trong tab Thống kê | ✅ |
+| ⭐ **Tab 5 "Thống kê & Trợ lý AI"** — hai khung kéo ngang (mục 5.6–5.7) | ✅ |
+| ⭐ Trợ lý AI "Hỏi đáp Đội tuyển": 12 công cụ, trí nhớ hội thoại, đọc to, chặn cá cược | ✅ |
+| ⭐ Thống kê sau trận: trận vừa đá, BXH cầu thủ (đồng hạng), các trận đã đá (cursor) | ✅ |
+| ⭐ BXH bảng đấu (Tab Trận đấu) + danh sách triệu tập có nhãn "Mới" (Tab Đội hình) | ✅ |
+| ⭐ Theme theo sự kiện: Tết, 30/4, 2/9, tự bật "Đi bão"/"Tiếp lửa" sau trận, kiểm tra tương phản | ✅ |
+| ⭐ Senior mode rút còn 3 tab + màn "mấy giờ đá · kênh nào · tỷ số" + nhắc giờ đá + đọc tỷ số | ✅ |
+| ⭐ Bộ 150 câu đánh giá trợ lý AI + cổng chặn deploy khi tụt >5% | ✅ đã chạy mẫu 16 câu: 16/16 đúng |
 | ⭐ Giao diện 3 màu chủ đạo + hoạ tiết cờ/lúa/tre | ✅ |
 | ⭐ SEO: meta, Open Graph, JSON-LD, sitemap, PWA | ✅ |
 | Thông báo đẩy khi app đã đóng (FCM) | ⏳ cần Firebase + development build |
@@ -575,8 +596,11 @@ Dịch vụ PostgreSQL miễn phí: [Neon](https://neon.tech), [Supabase](https:
 # Terminal 1: chạy backend
 cd backend && npm run dev
 
-# Terminal 2: kiểm thử toàn bộ API (18 phép thử)
+# Terminal 2: kiểm thử toàn bộ API (43 phép thử)
 cd backend && npm test
+
+# Không cần server: engine chấm điểm (44) + logic tính năng mới (48)
+cd backend && npm run test:rating && npm run test:features
 
 # Kiểm thử WebSocket realtime
 cd backend && node scripts/socket-test.mjs

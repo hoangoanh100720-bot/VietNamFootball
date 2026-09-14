@@ -37,6 +37,7 @@ const MATCH_SELECT = `
     m.id, m.competition, m.round, m.home_team_id, m.away_team_id,
     m.kickoff_at, m.venue, m.city, m.status,
     m.home_score, m.away_score, m.minute, m.attendance,
+    m.tv_channels,  -- ['VTV5','FPT Play'] — Senior mode hiện nổi bật "Xem kênh nào?" (mục 7.3)
     json_build_object(
       'id', ht.id, 'name', ht.name, 'country', ht.country,
       'logo_url', ht.logo_url, 'fifa_code', ht.fifa_code

@@ -54,6 +54,19 @@ export class AppError extends Error {
   static unprocessable(message: string, details?: unknown) {
     return new AppError(422, 'UNPROCESSABLE', message, details);
   }
+  /**
+   * 429 — vượt hạn mức sử dụng.
+   *
+   * Khác với rate limit theo IP (do middleware lo): mã này dành cho hạn mức
+   * theo TÀI KHOẢN, ví dụ số token AI mỗi người mỗi ngày.
+   *
+   * 💡 App nên hiển thị thông điệp này NGUYÊN VĂN cho người dùng — nó nói rõ
+   * khi nào họ dùng lại được, thay vì một dòng "lỗi 429" vô nghĩa.
+   */
+  static tooManyRequests(message = 'Bạn đã dùng hết lượt cho phép, vui lòng thử lại sau') {
+    return new AppError(429, 'TOO_MANY_REQUESTS', message);
+  }
+
   /** 503 — dịch vụ ngoài (Gemini, Football API) đang lỗi */
   static serviceUnavailable(message = 'Dịch vụ tạm thời không khả dụng') {
     return new AppError(503, 'SERVICE_UNAVAILABLE', message);

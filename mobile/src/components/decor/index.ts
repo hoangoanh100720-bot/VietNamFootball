@@ -20,6 +20,7 @@
  *   🎋 BambooDivider — đường phân cách giữa các mục
  *   🎋 BambooGrove   — bụi tre mờ làm nền (luôn để độ đục ≤ 8%)
  *   🖼️ HeroBanner    — khối đầu màn hình, đã ghép sẵn cả bốn lớp
+ *   ▬ TricolorStripe — vạch đỏ·vàng·xanh ở mép thanh tab / thanh tiêu đề
  *
  * ⛔ NGUYÊN TẮC CHUNG: mỗi biểu tượng có MỘT ý nghĩa và chỉ dùng đúng chỗ đó.
  *    Bông lúa rải lên màn hình đăng nhập thì nó không còn nghĩa là thành tích
@@ -31,3 +32,4 @@ export { VietnamFlag, GoldStar, buildStarPath, STAR_INNER_RATIO } from './Vietna
 export { RiceStalk, RiceWreath } from './RiceStalk';
 export { BambooStalk, BambooDivider, BambooGrove } from './Bamboo';
 export { HeroBanner } from './HeroBanner';
+export { TricolorStripe } from './TricolorStripe';

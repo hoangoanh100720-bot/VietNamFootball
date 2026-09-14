@@ -30,6 +30,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PixelRatio } from 'react-native';
+import type { ThemeMode } from '@/types';
 
 /** Khoá lưu trong AsyncStorage. Đặt tiền tố để không đụng khoá của thư viện khác. */
 const STORAGE_KEY = '@vnfootball/settings';
@@ -52,10 +53,22 @@ interface SettingsState {
    * Người dùng cũ mở app sẽ vào thẳng, không phải xem lại slide.
    */
   seenOnboarding: boolean;
+  /**
+   * ⭐ Giao diện theo sự kiện (ARCHITECTURE.md mục 6.4):
+   *   'auto'  — tự đổi theo Tết, 2/9, Đi bão… (mặc định)
+   *   'fixed' — luôn dùng theme có mã themeCode
+   *   'off'   — luôn dùng màu gốc Đỏ cờ
+   *
+   * Lưu TRÊN MÁY để khách (chưa đăng nhập) cũng chọn được. Người đã đăng nhập
+   * thì lựa chọn còn được đồng bộ lên tài khoản (xem màn Cài đặt).
+   */
+  themeMode: ThemeMode;
+  themeCode: string | null;
 
   setSenior: (value: boolean) => void;
   setColorScheme: (value: ColorSchemePreference) => void;
   setSeenOnboarding: (value: boolean) => void;
+  setTheme: (mode: ThemeMode, code?: string | null) => void;
   /** Đọc cài đặt từ ổ đĩa — gọi MỘT LẦN lúc app khởi động */
   hydrate: () => Promise<void>;
 }
@@ -65,6 +78,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   colorScheme: 'system',
   hydrated: false,
   seenOnboarding: false,
+  themeMode: 'auto',
+  themeCode: null,
 
   setSenior: (value) => {
     set({ isSenior: value });
@@ -78,6 +93,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setSeenOnboarding: (value) => {
     set({ seenOnboarding: value });
+    void persist(get());
+  },
+
+  setTheme: (mode, code = null) => {
+    // Chỉ chế độ 'fixed' mới cần mã theme; hai chế độ kia xoá mã đi cho sạch
+    set({ themeMode: mode, themeCode: mode === 'fixed' ? code : null });
     void persist(get());
   },
 
@@ -103,6 +124,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         isSenior: saved.isSenior ?? goiYSenior,
         colorScheme: saved.colorScheme ?? 'system',
         seenOnboarding: saved.seenOnboarding ?? false,
+        themeMode: saved.themeMode ?? 'auto',
+        themeCode: saved.themeCode ?? null,
         hydrated: true,
       });
     } catch {
@@ -135,6 +158,8 @@ async function persist(state: SettingsState): Promise<void> {
         isSenior: state.isSenior,
         colorScheme: state.colorScheme,
         seenOnboarding: state.seenOnboarding,
+        themeMode: state.themeMode,
+        themeCode: state.themeCode,
       })
     );
   } catch {

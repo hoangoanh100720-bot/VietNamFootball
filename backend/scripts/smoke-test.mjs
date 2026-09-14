@@ -238,6 +238,49 @@ await check('GET /search (gõ không dấu)', '/search?q=doi%20tuyen%20quoc%20gi
   return `${meta.count} kết quả trong ${meta.took_ms}ms — cao nhất: "${top.title.slice(0, 38)}" (điểm ${top.score.toFixed(2)})`;
 });
 
+console.log('\n■ THỐNG KÊ SAU TRẬN (Tab 5, mục 5.6)');
+await check('GET /stats/overview', '/stats/overview', (d) => {
+  const m = d.lastMatch;
+  const top = d.leaderboard?.rows?.[0];
+  return (m ? `trận vừa đá: ${m.home_team.name} ${m.home_score}-${m.away_score} ${m.away_team.name} (${m.result})` : 'chưa có trận') +
+    (top ? ` · top BXH: ${top.full_name} ${top.value}` : '');
+});
+{
+  // Trang 2 dùng cursor của trang 1 -> KHÔNG được trùng trận nào với trang 1
+  const page1 = await check('GET /stats/matches (trang 1)', '/stats/matches?limit=2', (d, meta) =>
+    `${d.matches.length} trận · còn trang sau: ${meta.nextCursor ? 'có' : 'không'}`
+  );
+  const res1 = await fetch(BASE + '/stats/matches?limit=2').then((r) => r.json());
+  if (page1 && res1.meta?.nextCursor) {
+    await check('GET /stats/matches (trang 2, cursor)', '/stats/matches?limit=2&cursor=' + res1.meta.nextCursor, (d) => {
+      const ids1 = new Set(res1.data.matches.map((m) => m.id));
+      const dup = d.matches.filter((m) => ids1.has(m.id));
+      return dup.length ? '⚠️ TRÙNG trận giữa hai trang: ' + dup.map((m) => m.id).join(',') : d.matches.length + ' trận, không trùng trang 1';
+    });
+  }
+}
+await check('GET /stats/players/leaderboard (bàn thắng)', '/stats/players/leaderboard?metric=goals&limit=5', (d) =>
+  'năm ' + d.period_key + ': ' + d.rows.map((r) => '#' + r.rank + ' ' + (r.short_name ?? r.full_name) + ' ' + r.value).join(', ')
+);
+
+console.log('\n■ BXH BẢNG ĐẤU & TRIỆU TẬP (mục 5.8)');
+await check('GET /competitions', '/competitions', (d) => d.seasons.length + ' mùa giải');
+await check('GET /competitions/standings', '/competitions/standings', (d) => d.vietnam_summary ?? 'không có giải vòng bảng');
+await check('GET /squads/current', '/squads/current', (d) =>
+  d ? d.squad.title + ' · ' + d.squad.player_count + ' cầu thủ · ' + d.new_count + ' mới' : 'chưa công bố đợt nào'
+);
+await check('GET /squads', '/squads', (d) => d.squads.length + ' đợt đã công bố');
+
+console.log('\n■ THEME THEO SỰ KIỆN (mục 6)');
+await check('GET /themes', '/themes', (d) => d.themes.map((t) => t.code).join(', '));
+await check('GET /themes/active (tự động)', '/themes/active', (d) => d.theme.name + ' (' + d.reason + ')');
+await check('GET /themes/active (khách cố định Tết)', '/themes/active?mode=fixed&code=tet', (d) => {
+  const allowed = ['accent', 'accentText', 'accentSoft', 'accentFg', 'gold', 'goldSoft', 'pitch', 'pitchStripe'];
+  const bad = Object.keys(d.theme.palette_dark).filter((k) => !allowed.includes(k));
+  if (d.theme.code !== 'tet') return '⚠️ mong đợi tet, nhận ' + d.theme.code;
+  return bad.length ? '⚠️ palette lọt token cấm: ' + bad.join(',') : d.theme.name + ', palette chỉ gồm token trong danh sách trắng';
+});
+
 console.log('\n■ XỬ LÝ LỖI (mong đợi API TỪ CHỐI)');
 
 /** Ngược với check(): lần này API PHẢI trả lỗi thì mới coi là đạt */
@@ -258,6 +301,10 @@ await expectError('Trận không tồn tại', '/matches/99999', 404);
 await expectError('ID không phải số', '/matches/abc', 400);
 await expectError('limit vượt trần 50', '/players?limit=999', 400);
 await expectError('Vị trí không hợp lệ', '/players?position=XX', 400);
+await expectError('Chỉ số BXH lạ (chống chèn SQL)', '/stats/players/leaderboard?metric=salary', 400);
+await expectError('Khoá kỳ chứa ký tự lạ', "/stats/players/leaderboard?key=2026';--", 400);
+await expectError('Đợt triệu tập không tồn tại', '/squads/99999', 404);
+await expectError('Mùa giải không hợp lệ', '/competitions/abc/standings', 400);
 
 console.log(`\n═══ KẾT QUẢ: ${passed} đạt, ${failed} lỗi ═══\n`);
 process.exit(failed > 0 ? 1 : 0);

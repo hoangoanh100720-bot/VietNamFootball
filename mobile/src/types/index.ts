@@ -131,6 +131,8 @@ export interface Match {
   away_score: number;
   minute: number | null;
   attendance: number | null;
+  /** Kênh phát sóng, vd ['VTV5', 'FPT Play']. Mảng rỗng = chưa có thông tin */
+  tv_channels?: string[];
 }
 
 export type MatchEventType =
@@ -188,6 +190,10 @@ export interface Player {
   market_value_eur: number;
   current_club: string | null;
   photo_url: string | null;
+  /** Ghi công ảnh (bắt buộc với giấy phép CC BY): "tác giả · giấy phép · Wikimedia Commons" */
+  photo_credit?: string | null;
+  /** Trang gốc của ảnh trên Wikimedia Commons */
+  photo_source_url?: string | null;
   caps: number;
   goals: number;
 }
@@ -210,6 +216,8 @@ export interface Coach {
   birth_date: string | null;
   age: number | null;
   photo_url: string | null;
+  photo_credit?: string | null;
+  photo_source_url?: string | null;
   start_date: string | null;
   contract_end: string | null;
   biography: string | null;
@@ -521,4 +529,238 @@ export interface LastMatchSquad {
   };
   starting: LineupPlayer[];
   bench: LineupPlayer[];
+}
+
+// ===========================================================================
+// TRỢ LÝ AI "HỎI ĐÁP ĐỘI TUYỂN" (đặc tả mục 5.7 + 10)
+// ===========================================================================
+
+/**
+ * Phản hồi của POST /chat — một lượt hỏi đáp.
+ *
+ * ⚠️ ĐỪNG NHẦM VỚI SearchHit (API /search). Hai thứ khác hẳn nhau:
+ *
+ *   searchApi.query()  -> trả về CÁC ĐOẠN VĂN BẢN thô lấy từ kho tri thức.
+ *                         Người dùng phải tự đọc và tự rút ra kết luận.
+ *
+ *   chatApi.ask()      -> trả về MỘT CÂU TRẢ LỜI đã được viết sẵn. Trợ lý tự
+ *                         quyết định cần tra bảng nào (trận đấu, điểm cầu thủ,
+ *                         BXH FIFA…), tự gọi công cụ, rồi tổng hợp thành câu.
+ *
+ * 👉 Cần dẫn chứng kèm nguồn thì dùng /search. Cần câu trả lời thẳng thì /chat.
+ */
+export interface ChatAnswer {
+  /**
+   * Id cuộc hội thoại.
+   *
+   * Lần hỏi ĐẦU TIÊN ta không gửi id; backend tự tạo cuộc mới và trả id về
+   * đây. Từ lượt thứ hai trở đi PHẢI gửi kèm id này, nếu không trợ lý sẽ mất
+   * trí nhớ — hỏi "còn cậu ấy ghi mấy bàn?" sẽ không biết "cậu ấy" là ai.
+   */
+  conversationId: string;
+  /** Câu trả lời đã viết sẵn bằng tiếng Việt, có thể chứa Markdown nhẹ (**đậm**) */
+  answer: string;
+  /**
+   * Tên các công cụ trợ lý đã dùng, ví dụ ['get_player_ratings'].
+   *
+   * Mảng RỖNG nghĩa là trợ lý trả lời mà không tra dữ liệu nào — hoặc vì câu
+   * hỏi bị lớp lọc chặn (cá cược), hoặc vì nó trả lời bằng kiến thức chung.
+   * Giao diện dùng mảng này để hiện dòng "đã tra: bảng điểm cầu thủ" —
+   * minh bạch về NGUỒN, đúng tinh thần mục 10.6.
+   */
+  toolsUsed: string[];
+  /** Số lượt gọi model đã tiêu (1 + số vòng gọi công cụ). Dùng để gỡ lỗi chi phí. */
+  rounds: number;
+}
+
+/** Một tin nhắn đã lưu trong lịch sử hội thoại */
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+/** Phản hồi của GET /chat/:id — đọc lại một cuộc hội thoại cũ */
+export interface ChatConversation {
+  conversation: { id: string; title: string | null; created_at: string };
+  messages: ChatMessage[];
+}
+
+// ===========================================================================
+// THỐNG KÊ SAU TRẬN & BXH CẦU THỦ (Tab 5 — đặc tả 5.6, 12.5)
+// ===========================================================================
+
+/** Thông số một đội trong một trận. Mọi trường có thể null khi nhà cung cấp thiếu */
+export interface TeamMatchStats {
+  possession_pct: number | null;
+  shots: number | null;
+  shots_on_target: number | null;
+  expected_goals: number | null;
+  corners: number | null;
+  fouls: number | null;
+  yellow_cards: number | null;
+  red_cards: number | null;
+  saves: number | null;
+  passes: number | null;
+  pass_accuracy_pct: number | null;
+}
+
+type TeamBrief = { id: number; name: string; fifa_code: string | null; logo_url: string | null };
+
+export interface StatsMatch {
+  id: number;
+  kickoff_at: string;
+  competition: string;
+  home_team: TeamBrief;
+  away_team: TeamBrief;
+  home_score: number;
+  away_score: number;
+  vietnam_is_home: boolean;
+  /** Nhìn TỪ PHÍA VIỆT NAM — đã tính sẵn ở server, app không tự so tỷ số */
+  result: 'win' | 'draw' | 'lose';
+  home_stats: TeamMatchStats | null;
+  away_stats: TeamMatchStats | null;
+}
+
+export interface ManOfTheMatch {
+  player_id: number;
+  full_name: string;
+  short_name: string | null;
+  position: PlayerPosition;
+  rating: number;
+  goals: number;
+  assists: number;
+}
+
+export type LeaderboardMetric = 'avg_rating' | 'goals' | 'assists' | 'motm' | 'cards';
+export type PeriodType = 'week' | 'month' | 'year' | 'competition' | 'squad';
+
+export interface LeaderboardRow {
+  /** Bằng chỉ số thì ĐỒNG HẠNG — có thể có hai dòng cùng rank */
+  rank: number;
+  player_id: number;
+  full_name: string;
+  short_name: string | null;
+  position: PlayerPosition;
+  photo_url: string | null;
+  matches: number;
+  minutes: number;
+  value: number;
+  avg_rating: number | null;
+  goals: number;
+  assists: number;
+  motm_count: number;
+  yellow_cards: number;
+  red_cards: number;
+}
+
+export interface Leaderboard {
+  period_type: PeriodType;
+  period_key: string;
+  metric: LeaderboardMetric;
+  min_minutes: number;
+  rows: LeaderboardRow[];
+  /** Chỉ có ở /stats/players/leaderboard — các kỳ đang có dữ liệu cho ô chọn */
+  periods?: Array<{ period_type: PeriodType; period_key: string; players: number }>;
+}
+
+export interface StatsOverview {
+  lastMatch: StatsMatch | null;
+  manOfTheMatch: ManOfTheMatch | null;
+  leaderboard: Leaderboard | null;
+}
+
+// ===========================================================================
+// BXH BẢNG ĐẤU (đặc tả 5.8)
+// ===========================================================================
+
+export interface StandingRow {
+  position: number;
+  team_id: number;
+  team_name: string;
+  fifa_code: string | null;
+  logo_url: string | null;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goals_for: number;
+  goals_against: number;
+  goal_diff: number;
+  points: number;
+  is_vietnam: boolean;
+}
+
+export interface StandingGroup {
+  group_name: string;
+  /** Vẽ vạch "đi tiếp" sau dòng thứ advance_count */
+  advance_count: number;
+  rows: StandingRow[];
+}
+
+export interface StandingsResponse {
+  season: { id: number; name: string; competition_name: string; advance_note: string } | null;
+  groups: StandingGroup[];
+  /** "Việt Nam đang đứng thứ 1 bảng F với 9 điểm sau 3 trận." — dùng cho Senior mode */
+  vietnam_summary: string | null;
+}
+
+// ===========================================================================
+// DANH SÁCH TRIỆU TẬP (đặc tả 5.8) — KHÁC Squad (đội hình ra sân)
+// ===========================================================================
+
+export interface CallUpMember {
+  player_id: number;
+  full_name: string;
+  short_name: string | null;
+  position: PlayerPosition;
+  shirt_number: number | null;
+  current_club: string | null;
+  photo_url: string | null;
+  status: 'called' | 'added' | 'withdrawn';
+  note: string | null;
+  /** Lần đầu được gọi lên đội tuyển -> nhãn "Mới" */
+  is_new: boolean;
+}
+
+export interface CallUpSummary {
+  id: number;
+  title: string;
+  gather_from: string | null;
+  gather_to: string | null;
+  announced_at: string;
+  player_count: number;
+}
+
+export interface CallUpDetail {
+  squad: CallUpSummary;
+  groups: Array<{ position: PlayerPosition; members: CallUpMember[] }>;
+  added: CallUpMember[];
+  withdrawn: CallUpMember[];
+  new_count: number;
+}
+
+// ===========================================================================
+// THEME THEO SỰ KIỆN (đặc tả mục 6)
+// ===========================================================================
+
+export type ThemeMode = 'auto' | 'fixed' | 'off';
+
+export interface EventTheme {
+  id: number;
+  code: string;
+  name: string;
+  kind: 'default' | 'event' | 'result_win' | 'result_lose';
+  /** Chỉ chứa token trong danh sách trắng (accent, accentText, gold…) */
+  palette_light: Record<string, string>;
+  palette_dark: Record<string, string>;
+  assets: { effect?: 'fireworks' | 'blossoms' | null; greeting?: string | null };
+  preview_url: string | null;
+  is_selectable: boolean;
+}
+
+export interface ActiveThemeResponse {
+  theme: EventTheme;
+  reason: 'user_fixed' | 'user_off' | 'schedule' | 'default';
+  ends_at: string | null;
 }

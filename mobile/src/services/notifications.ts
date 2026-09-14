@@ -11,7 +11,14 @@
  *   npx expo install expo-dev-client
  *   npx eas build --profile development --platform android
  *
- * NHƯNG: **thông báo cục bộ (local notification) vẫn chạy tốt trong Expo Go.**
+ * Thông báo CỤC BỘ (local notification) vẫn chạy trong Expo Go trên iOS.
+ *
+ * ⚠️ RIÊNG ANDROID + EXPO GO: chỉ cần IMPORT expo-notifications là app SẬP
+ * ngay khi mở ("Uncaught Error: expo-notifications: Android Push notifications
+ * ... was removed from Expo Go"). Đã gặp thật khi chạy trên máy ảo Android.
+ * Vì vậy module được nạp CÓ ĐIỀU KIỆN (xem ngay dưới phần import) — trong Expo
+ * Go Android mọi hàm ở file này trả về lý do rõ ràng thay vì làm sập app.
+ * Trên bản development build / bản phát hành thì mọi thứ chạy đầy đủ.
  *
  * Vì vậy app này làm hai lớp, bạn thấy kết quả ngay hôm nay:
  *
@@ -32,10 +39,36 @@
 
 import { Platform } from 'react-native';
 import { staticColors } from '@/theme/colors';
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { api } from '@/api/client';
+
+/**
+ * ⭐ NẠP expo-notifications CÓ ĐIỀU KIỆN — KHÔNG DÙNG "import" TĨNH.
+ *
+ * "import * as Notifications from 'expo-notifications'" chạy mã khởi tạo của
+ * module NGAY LÚC NẠP FILE. Trong Expo Go trên Android (từ SDK 53), mã khởi tạo
+ * đó NÉM LỖI — và vì file này được nạp từ app/_layout.tsx, cả app sập ngay màn
+ * hình đầu tiên, trước khi người dùng kịp thấy gì.
+ *
+ * require() đặt sau một câu điều kiện thì chỉ chạy khi điều kiện đúng. Metro
+ * vẫn đóng gói module vào bundle, nhưng KHÔNG thực thi nó trong Expo Go Android.
+ *
+ *   ExecutionEnvironment.StoreClient = đang chạy bên trong app Expo Go
+ *   ExecutionEnvironment.Bare / Standalone = development build / bản phát hành
+ */
+type NotificationsModule = typeof import('expo-notifications');
+
+const IS_EXPO_GO_ANDROID =
+  Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Notifications: NotificationsModule | null = IS_EXPO_GO_ANDROID ? null : require('expo-notifications');
+
+/** Lời giải thích dùng chung khi thông báo không khả dụng */
+const EXPO_GO_ANDROID_REASON =
+  'Expo Go trên Android không hỗ trợ thông báo. Các tính năng khác của app vẫn dùng bình thường; ' +
+  'muốn thử thông báo hãy dùng bản development build.';
 
 /**
  * CẤU HÌNH CÁCH HIỂN THỊ KHI APP ĐANG MỞ.
@@ -44,7 +77,7 @@ import { api } from '@/api/client';
  * (nó cho rằng bạn đã thấy rồi). Với app bóng đá thì ngược lại: đang xem
  * màn hình đội hình mà có bàn thắng thì RẤT cần được báo.
  */
-Notifications.setNotificationHandler({
+Notifications?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,  // hiện dải thông báo ở đầu màn hình
     shouldShowList: true,    // lưu vào trung tâm thông báo
@@ -64,7 +97,7 @@ Notifications.setNotificationHandler({
  * không báo lỗi gì — rất khó tìm nguyên nhân.
  */
 async function setupAndroidChannel(): Promise<void> {
-  if (Platform.OS !== 'android') return;
+  if (Platform.OS !== 'android' || !Notifications) return;
 
   await Notifications.setNotificationChannelAsync('match-events', {
     name: 'Diễn biến trận đấu',
@@ -91,6 +124,8 @@ export interface PushRegistration {
  * Trả về token nếu thành công, hoặc lý do thất bại.
  */
 export async function registerForPushNotifications(): Promise<PushRegistration> {
+  if (!Notifications) return { token: null, granted: false, reason: EXPO_GO_ANDROID_REASON };
+
   // Bước 0: tạo kênh Android trước khi xin quyền
   await setupAndroidChannel();
 
@@ -205,6 +240,7 @@ export async function showLocalNotification(params: {
   body: string;
   data?: Record<string, string>;
 }): Promise<void> {
+  if (!Notifications) return; // Expo Go Android: im lặng bỏ qua, không làm gián đoạn việc xem trận
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -231,9 +267,86 @@ export async function showLocalNotification(params: {
 export function addNotificationTapListener(
   onTap: (data: Record<string, unknown>) => void
 ): () => void {
+  if (!Notifications) return () => {}; // không có module -> không có gì để lắng nghe hay huỷ
   const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
     onTap(response.notification.request.content.data ?? {});
   });
 
   return () => subscription.remove();
+}
+
+/**
+ * ============================================================================
+ * ⭐ NHẮC TRƯỚC GIỜ ĐÁ — nút "NHẮC TÔI TRƯỚC GIỜ ĐÁ" của Senior mode (mục 7.3)
+ * ============================================================================
+ *
+ * Hẹn một thông báo CỤC BỘ trên máy, 30 phút trước giờ bóng lăn.
+ *
+ * ⚠️ VÌ SAO CỤC BỘ mà không nhờ server gửi thông báo đẩy?
+ *   • Chạy được khi KHÔNG đăng nhập và khi máy không có token đẩy (máy ảo,
+ *     người dùng tắt dịch vụ Google) — đúng nhóm người lớn tuổi hay gặp.
+ *   • Chạy được cả khi mất mạng lúc tới giờ: lịch nằm sẵn trên máy.
+ *
+ * ⚠️ XIN QUYỀN ĐÚNG LÚC: hàm này là nơi đầu tiên hỏi quyền thông báo — ngay
+ * khi người dùng vừa CHỦ ĐỘNG bấm "nhắc tôi". Lúc đó họ hiểu vì sao app cần
+ * quyền, nên tỷ lệ đồng ý cao hơn hẳn so với hỏi lúc vừa mở app.
+ *
+ * @returns thông điệp tiếng Việt để hiện cho người dùng (thành công hay lý do thất bại)
+ */
+export async function scheduleKickoffReminder(params: {
+  matchId: number;
+  homeName: string;
+  awayName: string;
+  kickoffAt: string;
+  channels?: string[];
+}): Promise<{ ok: boolean; message: string }> {
+  const REMIND_BEFORE_MS = 30 * 60 * 1000;
+  const fireAt = new Date(new Date(params.kickoffAt).getTime() - REMIND_BEFORE_MS);
+
+  if (fireAt.getTime() <= Date.now()) {
+    return { ok: false, message: 'Trận đấu sắp bắt đầu rồi, không kịp đặt lời nhắc nữa.' };
+  }
+
+  if (!Notifications) return { ok: false, message: EXPO_GO_ANDROID_REASON };
+
+  try {
+    await setupAndroidChannel();
+
+    const { status } = await Notifications.getPermissionsAsync();
+    const granted = status === 'granted' || (await Notifications.requestPermissionsAsync()).status === 'granted';
+    if (!granted) {
+      return {
+        ok: false,
+        message: 'App chưa được phép gửi thông báo. Bạn vào Cài đặt của điện thoại để bật cho app nhé.',
+      };
+    }
+
+    /**
+     * Mã định danh CỐ ĐỊNH theo trận: bấm "nhắc tôi" hai lần thì lần sau GHI
+     * ĐÈ lần trước, chứ không tạo ra hai thông báo giống hệt nhau cùng lúc.
+     */
+    const identifier = `kickoff-${params.matchId}`;
+    await Notifications.cancelScheduledNotificationAsync(identifier).catch(() => undefined);
+
+    const channelText = params.channels && params.channels.length > 0 ? ` Xem trên ${params.channels.join(' và ')}.` : '';
+
+    await Notifications.scheduleNotificationAsync({
+      identifier,
+      content: {
+        // Câu RÕ NGHĨA, không viết tắt "VIE-THA 19:30" (mục 7.4)
+        title: 'Còn 30 phút nữa đội tuyển ra sân!',
+        body: `${params.homeName} gặp ${params.awayName}.${channelText}`,
+        data: { matchId: String(params.matchId) },
+        sound: 'default',
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fireAt },
+    });
+
+    const hh = fireAt.getHours();
+    const mm = String(fireAt.getMinutes()).padStart(2, '0');
+    return { ok: true, message: `Đã đặt lời nhắc lúc ${hh} giờ ${mm}.` };
+  } catch {
+    // Bản web không hỗ trợ hẹn thông báo -> báo rõ thay vì im lặng
+    return { ok: false, message: 'Thiết bị này chưa hỗ trợ đặt lời nhắc.' };
+  }
 }

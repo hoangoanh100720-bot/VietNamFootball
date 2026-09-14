@@ -56,6 +56,11 @@ interface HeroBannerProps {
   showFlag?: boolean;
   /** Bo góc dưới — để hero "đổ" mềm vào nội dung phía dưới */
   rounded?: boolean;
+  /**
+   * Hoạ tiết lớn vẽ PHÍA SAU chữ (lớp ③c) — ví dụ lá cờ lớn ở banner trang chủ.
+   * Người truyền vào tự đặt position:'absolute' và phải giữ chữ đủ tương phản.
+   */
+  decoration?: ReactNode;
 }
 
 export function HeroBanner({
@@ -65,6 +70,7 @@ export function HeroBanner({
   showBamboo = true,
   showFlag = true,
   rounded = true,
+  decoration,
 }: HeroBannerProps) {
   const t = useTheme();
 
@@ -114,6 +120,13 @@ export function HeroBanner({
       {showFlag && (
         <View pointerEvents="none" style={styles.flagCorner}>
           <VietnamFlag size={34} opacity={variant === 'flag' ? 0.35 : 0.9} />
+        </View>
+      )}
+
+      {/* --- LỚP ③c: hoạ tiết lớn tuỳ màn hình (nằm dưới chữ, không nhận chạm) --- */}
+      {decoration && (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          {decoration}
         </View>
       )}
 

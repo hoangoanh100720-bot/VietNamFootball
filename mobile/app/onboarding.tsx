@@ -43,7 +43,7 @@
 import { useRef, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, View, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
@@ -91,6 +91,8 @@ const SLIDES = [
 
 export default function OnboardingScreen() {
   const t = useTheme();
+  /** Khoảng lõm thật của máy (tai thỏ, thanh trạng thái) — xem giải thích ở nút "Bỏ qua" */
+  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   const { setSeenOnboarding, isSenior, setSenior } = useSettingsStore();
@@ -148,13 +150,28 @@ export default function OnboardingScreen() {
             onPress={finish}
             accessibilityRole="button"
             accessibilityLabel="Bỏ qua phần giới thiệu"
+            hitSlop={8}
             style={{
               position: 'absolute',
-              top: t.spacing.xl,
+              /**
+               * ⚠️ PHẢI CỘNG insets.top — SafeAreaView bọc ngoài KHÔNG cứu được nút này.
+               *
+               * 🐛 LỖI ĐÃ GẶP THẬT trên máy ảo Android: bản trước đặt top = spacing.xl
+               * (24pt). Trên web trông ổn, nhưng trên Android nút "Bỏ qua" nằm đè lên
+               * thanh trạng thái (giờ, pin) và BẤM KHÔNG ĂN — hệ điều hành giữ vùng đó
+               * cho cử chỉ kéo thanh thông báo.
+               *
+               * Lý do: phần tử position:'absolute' được đặt toạ độ tính từ MÉP NGOÀI
+               * của khung cha, bỏ qua padding. SafeAreaView chừa chỗ bằng padding,
+               * nên nó đẩy được các phần tử bình thường xuống nhưng không đẩy được
+               * phần tử absolute. Phải tự cộng khoảng lõm thật của máy vào.
+               */
+              top: insets.top + t.spacing.sm,
               right: t.spacing.lg,
               zIndex: 10,
+              minHeight: t.touchTarget,
+              justifyContent: 'center',
               paddingHorizontal: t.spacing.md,
-              paddingVertical: t.spacing.sm,
             }}
           >
             <AppText variant="body" style={{ color: t.static.onDark.textMuted }}>

@@ -18,11 +18,14 @@
     "crawl": "tsx src/cli/crawl.ts",
     "ocr": "tsx src/cli/ocr.ts",
     "index": "tsx src/cli/index.ts",
-    "test:rating": "npm run build --silent && node scripts/rating-test.mjs"
+    "test:rating": "npm run build --silent && node scripts/rating-test.mjs",
+    "test:features": "tsx src/scripts/feature-test.ts",
+    "eval:ai": "tsx src/scripts/ai-eval.ts",
+    "data:real-squad": "tsx src/cli/realSquad.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",
-    "@google/genai": "^0.14.0",
+    "@google/genai": "^2.22.0",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.0.0",

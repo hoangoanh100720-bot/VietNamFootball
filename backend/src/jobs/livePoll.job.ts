@@ -31,7 +31,8 @@ import { query } from '@/config/database';
 import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 import { cacheDel } from '@/utils/cache';
-import { emitMatchEvent, emitMatchFinished, emitScoreUpdate } from '@/services/socket.service';
+import { emitMatchEvent, emitMatchFinished, emitScoreUpdate, emitThemeChanged } from '@/services/socket.service';
+import { scheduleResultTheme } from '@/modules/themes/themes.service';
 import { notifyGoal, notifyMatchFinished } from '@/services/notification.service';
 import { rateMatch } from '@/services/rating/rating.service';
 
@@ -88,6 +89,15 @@ async function pollOnce(): Promise<void> {
         await clearMatchCache(match.id);
 
         emitMatchFinished(match.id, { home: match.home_score, away: match.away_score });
+
+        /**
+         * ⭐ BẬT THEME PHẢN ỨNG "ĐI BÃO" / "TIẾP LỬA" (ARCHITECTURE.md mục 6.3).
+         * Hoà thì hàm trả false và không có gì xảy ra. Lỗi ở đây KHÔNG được
+         * làm dừng vòng theo dõi — theme chỉ là trang trí, tỷ số mới là cốt lõi.
+         */
+        void scheduleResultTheme(match.id)
+          .then((created) => { if (created) emitThemeChanged(); })
+          .catch((err: unknown) => logger.warn('Bật theme sau trận lỗi: ' + String(err)));
 
         // Gửi push cho người KHÔNG mở app (socket ở trên chỉ tới được người đang xem).
         // void + catch: thông báo lỗi không được làm dừng vòng lặp theo dõi.

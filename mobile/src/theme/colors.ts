@@ -63,9 +63,11 @@
  *    như nhiều người lầm tưởng). Bóng đổ gần như vô hình trên nền tối,
  *    nên ta dùng VIỀN 1px thay cho bóng.
  *
- * 6. CHẾ ĐỘ SÁNG DÙNG NỀN "GIẤY DÓ" #F7F6EF, KHÔNG PHẢI TRẮNG XANH
- *    Trắng ngả vàng gợi giấy dó, hạt lúa và nắng — ăn khớp với bảng màu.
- *    Trắng ngả xanh (#F5F7FA) là mặc định của mọi app công nghệ, vô hồn.
+ * 6. CHẾ ĐỘ SÁNG DÙNG NỀN "LÁ MẠ" #EDF5EE, KHÔNG PHẢI TRẮNG XÁM
+ *    Bản đầu dùng giấy dó #F7F6EF và bị nhận xét "chưa thấy dùng màu": cả
+ *    màn hình be/trắng, ba màu chủ đạo chỉ còn vài chấm nhỏ. Nền xanh lá
+ *    rất nhạt giữ xanh tre làm NỀN ở cả chế độ sáng, đúng tỷ lệ 80/15/5.
+ *    Trắng ngả xanh dương (#F5F7FA) là mặc định của mọi app công nghệ, vô hồn.
  *
  * 7. KHÔNG BAO GIỜ TRUYỀN TIN CHỈ BẰNG MÀU
  *    Thắng/Hoà/Thua luôn kèm chữ "T"/"H"/"B", không chỉ tô màu.
@@ -169,16 +171,16 @@ export const darkColors: ColorPalette = {
 
   accent: '#DA251D',        // ① đỏ cờ — dùng cho MẢNG LỚN
   accentText: '#FF5F52',    // đỏ sáng hơn — dùng cho CHỮ và ICON (6.0:1)
-  accentSoft: '#2A1512',    // nền badge đỏ rất tối
+  accentSoft: '#3A1814',    // nền badge đỏ — đủ ấm để nhận ra là đỏ trên nền tre
   accentFg: '#FFFFFF',
 
   gold: '#FFCD00',          // ② vàng sao — mảng lớn và hoạ tiết
-  goldSoft: '#2B2610',
+  goldSoft: '#3A3212',
   goldText: '#FFCD00',      // trên nền tối, vàng gốc đã đạt 12:1 — dùng thẳng
 
   bamboo: '#3E7D52',        // ③ xanh lá tre — hoạ tiết, đường viền trang trí
-  bambooText: '#6FBF8A',    // bản sáng để làm chữ trên nền tối (7.4:1)
-  bambooSoft: '#12301E',
+  bambooText: '#6FBF8A',    // bản sáng để làm chữ trên nền tối (8.1:1)
+  bambooSoft: '#173F28',
   bambooDeep: '#061009',
 
   win: '#22C55E',
@@ -211,39 +213,47 @@ export const darkColors: ColorPalette = {
  *   - Vàng sao PHẢI sẫm lại thành vàng lúa chín, nếu không sẽ không đọc được
  */
 export const lightColors: ColorPalette = {
-  bg: '#F7F6EF',            // giấy dó — trắng ngả vàng ấm
+  /**
+   * ⭐ NỀN "LÁ MẠ" #EDF5EE — xanh lá rất nhạt, thay cho giấy dó #F7F6EF.
+   * Bản giấy dó bị chê là "chưa thấy màu": cả màn hình be/trắng, xanh lá
+   * gần như vắng mặt. Nhuộm nhẹ nền và viền sang xanh lá thì màu chủ đạo
+   * thứ ba hiện diện ở MỌI màn hình, trong khi thẻ trắng vẫn nổi rõ trên nền.
+   * ⚠️ Đổi giá trị này thì sửa luôn BASE_BG ở backend themes.service.ts.
+   */
+  bg: '#EDF5EE',
   surface: '#FFFFFF',
   surfaceRaised: '#FFFFFF',
-  surfaceSunken: '#EFEDE2',
+  surfaceSunken: '#DFEDE2',
 
   text: '#11271A',          // xanh tre rất sẫm, không dùng đen thuần
-  textMuted: '#4A6353',     // 7.9:1 trên nền giấy dó
-  textFaint: '#6B8574',     // 4.6:1 — vừa đủ chuẩn
+  textMuted: '#40594A',     // 6.9:1 trên nền lá mạ
+  textFaint: '#5A7563',     // 4.5:1 — vừa đủ chuẩn
   textInverse: '#FFFFFF',
 
-  border: '#E0E2D4',
-  borderStrong: '#C4CDBA',
+  border: '#CFE2D3',        // viền ngả xanh lá, không xám
+  borderStrong: '#A9C8B1',
 
   accent: '#DA251D',        // ① giữ nguyên đỏ cờ: trên nền sáng đủ tương phản
-  accentText: '#B81811',    // đỏ ĐẬM hơn cho chữ trên nền sáng (7.3:1)
-  accentSoft: '#FCEAE7',
+  accentText: '#B81811',    // đỏ ĐẬM hơn cho chữ trên nền sáng (6.0:1)
+  accentSoft: '#FDE2DE',    // hồng đỏ đủ đậm để NHÌN THẤY là màu đỏ
   accentFg: '#FFFFFF',
 
   gold: '#FFCD00',          // ② mảng vàng vẫn dùng vàng sao thật
-  goldSoft: '#FFF6D9',
-  goldText: '#A87900',      // ⚠️ vàng lúa chín — #FFCD00 làm chữ trên nền
+  goldSoft: '#FFF0B8',
+  goldText: '#8A6300',      // ⚠️ vàng lúa chín — #FFCD00 làm chữ trên nền
                             //    sáng chỉ đạt 1.7:1, hoàn toàn không đọc được
+                            //    (4.8:1 cả trên nền goldSoft)
 
   bamboo: '#2E7048',        // ③ xanh tre cho mảng và hoạ tiết
-  bambooText: '#1B5E3A',    // đủ tương phản làm chữ (6.1:1)
-  bambooSoft: '#E6F0E8',
+  bambooText: '#1B5E3A',    // đủ tương phản làm chữ (7.0:1)
+  bambooSoft: '#D3EADA',
   bambooDeep: '#0F3D25',
 
   win: '#15803D',
   draw: '#64766B',
   lose: '#BE123C',
   winSoft: '#DCFCE7',
-  drawSoft: '#EDF0EA',
+  drawSoft: '#E2ECE4',
   loseSoft: '#FFE4E9',
 
   // Cùng bốn bậc, nhưng SẪM lại để đọc được trên nền giấy dó
@@ -257,7 +267,7 @@ export const lightColors: ColorPalette = {
   pitchLine: 'rgba(255,255,255,0.55)',
 
   overlay: 'rgba(17, 39, 26, 0.45)',
-  skeleton: '#E9E7DB',
+  skeleton: '#DCEADF',
 };
 
 /**
@@ -308,6 +318,20 @@ export const staticColors = {
    */
   bambooGradient: ['#0F3D25', '#2E7048', '#5FA872'] as const,
 
+  /**
+   * ⭐ THANH TIÊU ĐỀ — nền xanh tre sẫm, chữ trắng, điểm vàng sao.
+   * Cố định ở cả hai chế độ: thanh tiêu đề là "vỏ thương hiệu", nhìn một cái
+   * là biết app của đội tuyển. Nền cố định nên chữ trên nó cũng cố định.
+   * Tương phản: trắng 12.3:1, vàng sao 8.2:1.
+   */
+  brandBar: { bg: '#0F3D25', text: '#FFFFFF', gold: '#FFCD00' },
+
+  /**
+   * ⭐ DẢI BA MÀU CHỦ ĐẠO — đỏ cờ · vàng sao · xanh tre, dùng làm vạch mảnh
+   * (mép trên thanh tab, dưới tiêu đề nhóm). Là hoạ tiết, không mang thông tin.
+   */
+  tricolor: ['#DA251D', '#FFCD00', '#2E7048'] as const,
+
   /** Màu tuyệt đối — chỉ dùng khi thật sự cần, ưu tiên token theo theme */
   transparent: 'transparent',
   white: '#FFFFFF',
@@ -335,6 +359,14 @@ export const staticColors = {
     border: 'rgba(255,255,255,0.14)',
     /** Viền trắng quanh chấm cầu thủ trên sơ đồ sân — tách khỏi mặt cỏ */
     jerseyRing: 'rgba(255,255,255,0.9)',
+    /**
+     * Tăng/giảm bậc trên nền hero TỐI CỐ ĐỊNH. Không dùng colors.win/lose vì ở
+     * chế độ sáng chúng là xanh/đỏ SẪM (#15803D) — đặt lên nền gần đen thì chìm mất.
+     */
+    win: '#22C55E',
+    lose: '#F43F5E',
+    /** Nền đặc cho thẻ số liệu nằm đè lên hoạ tiết (lá cờ) ở banner — chữ luôn đủ tương phản */
+    chipBg: 'rgba(6,16,9,0.78)',
   },
 
   /**

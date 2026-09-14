@@ -139,6 +139,36 @@ const envSchema = z.object({
   /** Phần gối đầu giữa hai đoạn liền kề — tránh cắt đứt câu đang dở */
   RAG_CHUNK_OVERLAP: z.coerce.number().int().min(0).default(200),
 
+  // ---------- 6d. TRỢ LÝ AI CHAT (ARCHITECTURE.md mục 10) ----------
+  /** Cờ tắt khẩn cấp: tắt chat mà không phải xoá key hay gỡ code */
+  AI_CHAT_ENABLED: boolFromString.default('true'),
+  /**
+   * Số LƯỢT hội thoại gần nhất gửi lại cho model mỗi câu hỏi.
+   *
+   * ⚠️ Toàn bộ lịch sử này được gửi lại TRONG MỖI request và tính tiền theo
+   * token. Tăng lên 50 thì câu hỏi thứ 51 phải trả tiền cho cả 50 lượt trước.
+   * 8 lượt là đủ để model hiểu mạch hội thoại mà chi phí vẫn ổn định.
+   */
+  AI_CHAT_HISTORY_TURNS: z.coerce.number().int().min(1).max(30).default(8),
+  /** Từ lượt thứ N thì tóm tắt phần cũ vào ai_conversations.summary */
+  AI_CHAT_SUMMARY_AFTER_TURNS: z.coerce.number().int().default(12),
+  /**
+   * 🛑 Trần số vòng gọi công cụ trong MỘT câu hỏi.
+   *
+   * Model có thể rơi vào vòng lặp gọi đi gọi lại cùng một tool. Mỗi vòng là
+   * một lượt gọi API tốn tiền — không có trần thì một câu hỏi hỏng đốt được
+   * hàng trăm lượt. Xem vòng lặp trong services/chat/chat.service.ts.
+   */
+  AI_MAX_TOOL_CALLS: z.coerce.number().int().min(1).max(10).default(5),
+  /** Hạn mức token mỗi người mỗi ngày — chặn một tài khoản đốt sạch ngân sách */
+  AI_DAILY_TOKEN_QUOTA_PER_USER: z.coerce.number().int().default(50_000),
+  /** Trần chi phí toàn hệ thống mỗi ngày (USD) */
+  AI_DAILY_BUDGET_USD: z.coerce.number().default(20),
+  /** Cache câu trả lời cho câu hỏi phổ biến, tính bằng giây */
+  AI_RESPONSE_CACHE_TTL: z.coerce.number().int().default(300),
+  /** Tự xoá nội dung chat sau bao nhiêu ngày (quyền riêng tư, mục 10.6) */
+  AI_CHAT_RETENTION_DAYS: z.coerce.number().int().default(30),
+
   // ---------- 6c. OCR BẰNG GEMINI (đọc chữ trong ảnh / PDF) ----------
   /**
    * Gemini là model ĐA PHƯƠNG THỨC (multimodal): gửi thẳng ảnh/PDF vào,

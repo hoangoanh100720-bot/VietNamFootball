@@ -225,8 +225,20 @@ function toFriendlyError(error: AxiosError<ApiError>): ApiRequestError {
     return new ApiRequestError(e.message, e.code, error.response.status, e.details);
   }
 
-  // Quá thời gian chờ
-  if (error.code === 'ECONNABORTED') {
+  /**
+   * Quá thời gian chờ.
+   *
+   * 🐛 Bản trước chỉ bắt 'ECONNABORTED'. Trên Android, hết giờ có khi lại đến
+   * dưới dạng 'ETIMEDOUT' hoặc chỉ là thông điệp "timeout of 15000ms exceeded"
+   * — lọt xuống nhánh bên dưới và hiện "Không kết nối được máy chủ, kiểm tra
+   * IP, Wi-Fi…". Người dùng đi kiểm tra mạng trong khi mạng hoàn toàn ổn.
+   * Báo SAI nguyên nhân còn tệ hơn không báo gì.
+   */
+  if (
+    error.code === 'ECONNABORTED' ||
+    error.code === 'ETIMEDOUT' ||
+    /timeout/i.test(error.message ?? '')
+  ) {
     return new ApiRequestError(
       'Máy chủ phản hồi quá chậm. Vui lòng thử lại.',
       'TIMEOUT'

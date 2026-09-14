@@ -98,8 +98,12 @@ export function Screen({
         StatusBar: chữ giờ/pin ở đỉnh màn hình.
         Nền tối -> chữ phải sáng ("light"), nền sáng -> chữ tối ("dark").
         Quên dòng này là chữ đen trên nền đen, không đọc được gì.
+
+        ⚠️ Không chừa cạnh trên = màn hình nằm DƯỚI thanh tiêu đề của Stack
+        (chi tiết trận, hồ sơ cầu thủ). Thanh đó luôn xanh tre sẫm (xem
+        staticColors.brandBar) nên chữ trạng thái luôn sáng, bất kể chế độ.
       */}
-      <StatusBar style={t.isDark ? 'light' : 'dark'} />
+      <StatusBar style={t.isDark || !edges.includes('top') ? 'light' : 'dark'} />
 
       {scroll ? (
         <ScrollView

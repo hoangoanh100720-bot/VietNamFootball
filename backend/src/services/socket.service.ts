@@ -130,6 +130,19 @@ export function emitMatchFinished(matchId: number, finalScore: { home: number; a
   logger.info('Trận kết thúc, đã thông báo', { matchId, finalScore });
 }
 
+/**
+ * Báo MỌI client rằng theme đang áp dụng vừa đổi (vd bật "Đi bão" sau trận).
+ *
+ * io.emit() -> gửi tới TẤT CẢ kết nối, không riêng phòng trận nào: người đang
+ * ở màn hình Cầu thủ cũng phải thấy pháo hoa, không chỉ người đang xem trận.
+ * Payload chỉ là tín hiệu "hãy tải lại" — app tự gọi /themes/active, vì mỗi
+ * người có thể đang chọn chế độ khác nhau (tự động / cố định / tắt).
+ */
+export function emitThemeChanged() {
+  if (!io) return;
+  io.emit('theme:changed', { at: new Date().toISOString() });
+}
+
 /** Số client đang theo dõi một trận — hữu ích để tắt polling khi không ai xem */
 export async function countSubscribers(matchId: number): Promise<number> {
   if (!io) return 0;

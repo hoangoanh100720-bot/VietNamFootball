@@ -35,9 +35,27 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { ThemeProvider, useTheme } from '@/theme';
+import { View } from 'react-native';
+import { ThemeCelebration } from '@/components/effects/ThemeCelebration';
+import { TricolorStripe } from '@/components/decor';
 import { useAuthStore } from '@/store/authStore';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useSettingsStore } from '@/store/settingsStore';
+import * as SplashScreen from 'expo-splash-screen';
+import { BrandSplash } from '@/components/brand/BrandSplash';
+
+/**
+ * ⭐ GIỮ MÀN KHỞI ĐỘNG GỐC (lá cờ) CHO TỚI KHI APP TỰ TẮT NÓ.
+ *
+ * Mặc định màn gốc tự biến mất ngay khi JavaScript chạy — lúc đó màn hình còn
+ * chưa vẽ gì, người dùng thấy một khoảnh khắc trắng/đen trống trơn giữa lá cờ
+ * và app. Gọi hàm này ở CẤP MODULE (chạy ngay khi file được nạp, trước mọi
+ * render) để giữ lá cờ lại; BrandSplash sẽ tắt nó đúng lúc đã vẽ xong màn thay
+ * thế — xem components/brand/BrandSplash.tsx.
+ *
+ * .catch: bản web không có màn gốc -> hàm có thể báo lỗi, bỏ qua là đúng.
+ */
+void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 /**
  * REACT QUERY — thư viện quản lý "dữ liệu đến từ server".
@@ -134,11 +152,26 @@ function RootNavigator() {
   useNotifications();
 
   return (
+    /**
+     * View bọc ngoài để đặt lớp hiệu ứng theme (ThemeCelebration) CHỒNG LÊN
+     * toàn bộ điều hướng — pháo hoa "Đi bão" hiện dù người dùng đang ở tab nào.
+     * Lớp đó có pointerEvents="none" nên không bao giờ chặn chạm vào app.
+     */
+    <View style={{ flex: 1, backgroundColor: t.colors.bg }}>
     <Stack
       screenOptions={{
-        // Màu nền và chữ của thanh tiêu đề — phải theo theme, không để mặc định
-        headerStyle: { backgroundColor: t.colors.bg },
-        headerTintColor: t.colors.text,
+        /**
+         * ⭐ Thanh tiêu đề mang màu thương hiệu: nền XANH TRE sẫm cố định + vạch
+         * ba màu ở mép dưới. Nền cố định nên chữ/nút quay lại cũng cố định trắng
+         * (xem staticColors.brandBar) — không lấy t.colors.text, vốn đổi theo chế độ.
+         */
+        headerStyle: { backgroundColor: t.static.brandBar.bg },
+        headerBackground: () => (
+          <View style={{ flex: 1, backgroundColor: t.static.brandBar.bg, justifyContent: 'flex-end' }}>
+            <TricolorStripe />
+          </View>
+        ),
+        headerTintColor: t.static.brandBar.text,
         headerTitleStyle: {
           fontWeight: t.fontWeight.semibold,
           fontSize: t.fontSize.md,
@@ -165,5 +198,9 @@ function RootNavigator() {
       <Stack.Screen name="match/[id]" options={{ title: 'Chi tiết trận đấu' }} />
       <Stack.Screen name="player/[id]" options={{ title: 'Hồ sơ cầu thủ' }} />
     </Stack>
+    <ThemeCelebration />
+    {/* Màn khởi động "ĐỘI TUYỂN VIỆT NAM" — nằm TRÊN CÙNG, tự gỡ sau ~1,2 giây (mục 4.1) */}
+    <BrandSplash />
+    </View>
   );
 }

@@ -19,6 +19,7 @@
  *   8. errorHandler: cuối cùng, bắt mọi lỗi
  */
 
+import path from 'node:path';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -84,6 +85,23 @@ export function createApp(): Application {
       timestamp: new Date().toISOString(),
     });
   });
+
+  /* --------------------------------------------------------------------
+   * 6b. FILE TĨNH — ảnh chân dung cầu thủ (backend/public/players)
+   *
+   * ⚠️ crossOriginResourcePolicy 'cross-origin': helmet mặc định đặt
+   * "same-origin", nên bản web (localhost:8081) tải ảnh từ API (localhost:5000)
+   * sẽ bị trình duyệt CHẶN — ảnh vỡ mà không có lỗi nào trong log server.
+   *
+   * Đường dẫn tính từ __dirname nên chạy đúng cả khi `tsx src/` lẫn `node dist/`
+   * (cả hai đều cách backend/public đúng một cấp thư mục).
+   * Cache 7 ngày: ảnh chân dung gần như không bao giờ đổi.
+   * ------------------------------------------------------------------ */
+  app.use(
+    '/static',
+    helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }),
+    express.static(path.resolve(__dirname, '../public'), { maxAge: '7d', index: false })
+  );
 
   /* ------------------------- 7. ROUTES CHÍNH ------------------------ */
   app.use(env.API_PREFIX, apiRouter);
