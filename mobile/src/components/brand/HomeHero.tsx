@@ -8,7 +8,7 @@
  *   │ Việt Nam                   ▄▄▄▄▄▄▄     │ ◄ lá cờ LỚN bay phía sau,
  *   │ Những chiến binh Sao Vàng  █  ★  █     │   nghiêng nhẹ, tràn mép phải
  *   │ ▬▬▬▬ đỏ·vàng·xanh          ▀▀▀▀▀▀▀     │
- *   │ [★ Hạng 109 FIFA ▲4] [🏆 3 lần vô địch] │ ◄ 3 thẻ số liệu mang 3 màu
+ *   │ [★ Hạng 109 FIFA ▲4] [🏆 4 lần vô địch] │ ◄ 3 thẻ số liệu mang 3 màu
  *   │ [🚩 Nhất bảng F]              🌾   🌾   │   chủ đạo: vàng · đỏ · xanh tre
  *   └───────────────────────────────────────┘
  *

@@ -27,14 +27,14 @@
      Gợi ý: thêm một endpoint GET /sitemap.xml ở backend, truy vấn bảng
      matches và players rồi kết xuất ra đúng định dạng dưới đây.
 
-  ⚠️ ĐỔI TOÀN BỘ doituyenvietnam.vn THÀNH TÊN MIỀN THẬT CỦA BẠN.
+  Sitemap nay da tro dung ten mien that: bongda.oanh.online
   ============================================================================
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <!-- Trang chủ: tỷ số trực tiếp + lịch thi đấu -> quan trọng nhất, đổi liên tục -->
   <url>
-    <loc>https://doituyenvietnam.vn/</loc>
+    <loc>https://bongda.oanh.online/</loc>
     <lastmod>2026-09-12</lastmod>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
@@ -42,7 +42,7 @@
 
   <!-- Đội hình ra sân: đổi trước mỗi trận -->
   <url>
-    <loc>https://doituyenvietnam.vn/squad</loc>
+    <loc>https://bongda.oanh.online/squad</loc>
     <lastmod>2026-09-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -50,7 +50,7 @@
 
   <!-- Danh sách cầu thủ: đổi theo mỗi đợt triệu tập -->
   <url>
-    <loc>https://doituyenvietnam.vn/players</loc>
+    <loc>https://bongda.oanh.online/players</loc>
     <lastmod>2026-09-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -58,7 +58,7 @@
 
   <!-- Dự đoán & bảng xếp hạng: đổi theo từng trận -->
   <url>
-    <loc>https://doituyenvietnam.vn/ai</loc>
+    <loc>https://bongda.oanh.online/ai</loc>
     <lastmod>2026-09-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>

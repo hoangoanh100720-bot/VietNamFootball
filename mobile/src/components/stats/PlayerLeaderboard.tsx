@@ -49,7 +49,11 @@ export function PlayerLeaderboard() {
   const t = useTheme();
   const router = useRouter();
 
-  const [metric, setMetric] = useState<LeaderboardMetric>('avg_rating');
+  /**
+   * Mặc định mở bảng BÀN THẮNG: đây là số liệu thật có đủ cho mọi trận. Điểm đánh
+   * giá cần thông số chi tiết từng cầu thủ (cú sút, chuyền…) mà chưa có nguồn mở.
+   */
+  const [metric, setMetric] = useState<LeaderboardMetric>('goals');
   /** undefined = để backend tự chọn năm mới nhất có dữ liệu */
   const [periodKey, setPeriodKey] = useState<string | undefined>();
 
@@ -193,7 +197,8 @@ export function PlayerLeaderboard() {
                     {row.short_name ?? row.full_name}
                   </AppText>
                   <AppText variant="caption" tone="faint" tabular>
-                    {row.matches} trận · {row.minutes} phút
+                    {/* Số trận/phút chỉ có với trận có biên bản đầy đủ — không có thì không in "0 trận" */}
+                    {row.matches > 0 ? `${row.matches} trận · ${row.minutes} phút` : `${row.goals} bàn thắng`}
                   </AppText>
                 </View>
 

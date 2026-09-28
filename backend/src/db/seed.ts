@@ -58,6 +58,8 @@ import {
 } from '@/db/seeds/featureData';
 import { PLAYER_PHOTOS } from '@/db/seeds/playerPhotos';
 import { applyRealSquad } from '@/db/realSquad';
+import { applyRealMatches } from '@/db/realMatches';
+import { markDataPatchesApplied } from '@/db/dataPatches';
 
 export async function seedDatabase(): Promise<void> {
   /**
@@ -604,6 +606,14 @@ export async function seedDatabase(): Promise<void> {
    */
   const real = await withTransaction((tx) => applyRealSquad(tx));
   logger.info(`Đội hình thật: cập nhật ${real.updated}, thêm ${real.inserted}, cho nghỉ ${real.retired}`);
+
+  /** ⭐ Thay trận mẫu bằng trận thật — xem db/realMatches.ts */
+  const realM = await withTransaction(async (tx) => {
+    const r = await applyRealMatches(tx);
+    await markDataPatchesApplied(tx);
+    return r;
+  });
+  logger.info(`Trận thật: ${realM.matches} trận, ${realM.events} sự kiện, ${realM.lineups} đội hình`);
 
   logger.info('===== SEED HOÀN TẤT =====');
 }

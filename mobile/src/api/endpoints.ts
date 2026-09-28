@@ -86,14 +86,138 @@ export const playersApi = {
 // ---------------------------------------------------------------------------
 // AI & BẢNG XẾP HẠNG
 // ---------------------------------------------------------------------------
+/**
+ * ⚠️ ĐÂY LÀ NHÓM API DUY NHẤT TRONG FILE NÀY **TỐN TIỀN THẬT**.
+ *
+ * Mọi endpoint khác chỉ đọc cơ sở dữ liệu (vài chục mili-giây, miễn phí).
+ * `aiApi.predict` có thể kích hoạt một lượt gọi Gemini — mất 2–5 giây và trừ
+ * quota. Vì thế backend dựng hai hàng rào mà giao diện PHẢI tôn trọng:
+ *
+ *   1. aiLimiter — 20 request / 1 giờ / 1 IP (rateLimit.middleware.ts).
+ *      Vượt ngưỡng -> HTTP 429, người dùng bị khoá tính năng cho tới đầu giờ sau.
+ *   2. Cache nhiều tầng — xem chú thích của `predict` ngay bên dưới.
+ *
+ * 👉 Hệ quả cho UI: nút "Làm mới dự đoán" phải bị khoá sau mỗi lần bấm
+ *    (tối thiểu vài chục giây) và KHÔNG được gọi lại tự động khi màn hình
+ *    focus lại. Người dùng bấm nghịch 20 cái là hết quota của TẤT CẢ mọi người
+ *    dùng chung IP đó.
+ */
 export const aiApi = {
+  /**
+   * Dự đoán kết quả một trận: tỉ lệ thắng/hoà/thua, tỉ số dự kiến, các yếu tố
+   * then chốt và một đoạn phân tích bằng tiếng Việt.
+   *
+   * --------------------------------------------------------------------------
+   * DỮ LIỆU TRẢ VỀ ĐẾN TỪ ĐÂU? — 5 NGUỒN, ĐỌC `prediction.source` LÀ BIẾT
+   *
+   * Backend thử lần lượt từ rẻ tới đắt, dừng ở tầng nào có kết quả (ai.service.ts):
+   *
+   *   'cache'       Bộ nhớ đệm, còn hạn 6 giờ (CACHE_TTL_AI)  -> tức thì, 0 đồng
+   *   'database'    Bảng ai_predictions, bản còn hạn          -> ~20ms,   0 đồng
+   *   'gemini'      Gọi model thật                            -> 2–5 giây, TỐN TIỀN
+   *   'stale'       Gemini lỗi -> lấy bản CŨ ĐÃ HẾT HẠN       -> thà cũ còn hơn không có
+   *   'statistical' Không có key / hết lượt / không có bản cũ
+   *                 -> mô hình Elo (điểm FIFA + phong độ + sân nhà), 0 đồng
+   *
+   * 👉 Giao diện nên hiện nhãn khác nhau cho 'gemini' và 'statistical' — nói
+   *    "AI phân tích" trong khi thực ra là công thức Elo là nói sai với người dùng.
+   *    'stale' thì nên kèm thời điểm `generated_at` để họ biết đây là bản cũ.
+   *
+   * --------------------------------------------------------------------------
+   * HẠN DÙNG CỦA MỘT DỰ ĐOÁN
+   *
+   * `expires_at` = min(bây giờ + 6 giờ, GIỜ BÓNG LĂN). Nghĩa là dự đoán KHÔNG
+   * BAO GIỜ sống qua tiếng còi khai cuộc — lúc đó nó hết ý nghĩa rồi.
+   *
+   * --------------------------------------------------------------------------
+   * @param matchId ID trận. Backend ép kiểu số nguyên dương; sai -> 400.
+   *
+   *   ⚠️ Trận có status === 'finished' -> backend trả 422 "Trận đấu đã kết thúc,
+   *   không cần dự đoán nữa". Đây là LỖI CỐ Ý, không phải sự cố. Màn hình phải
+   *   tự ẩn khối dự đoán với trận đã đá xong, đừng gọi rồi mới hiện lỗi đỏ.
+   *
+   * @param refresh `true` = BỎ QUA hai tầng cache, ép sinh dự đoán mới.
+   *
+   *   Chỉ dùng cho hành động NGƯỜI DÙNG CHỦ ĐỘNG bấm. Tuyệt đối không đặt
+   *   `refresh: true` trong `useQuery` thường, vì React Query sẽ tự gọi lại khi
+   *   app quay lại foreground -> đốt quota trong im lặng.
+   *
+   * --------------------------------------------------------------------------
+   * 🤔 VÌ SAO LÀ CHUỖI 'true' CHỨ KHÔNG PHẢI BOOLEAN true?
+   *
+   * Query string trên URL không có kiểu — mọi thứ đều là chữ. Backend so sánh
+   * đúng nguyên văn: `req.query.refresh === 'true'` (ai.controller.ts). Truyền
+   * boolean thì axios cũng tự đổi thành "true", nhưng viết sẵn chuỗi ở đây là
+   * để người đọc thấy ngay cái backend thật sự chờ đợi.
+   *
+   * 🤔 VÌ SAO KHÔNG REFRESH THÌ TRUYỀN `undefined`, CHỨ KHÔNG PHẢI 'false'?
+   *
+   * axios BỎ HẲN tham số `undefined` khỏi URL. Kết quả:
+   *     refresh = false -> GET /ai/predict/5
+   *     refresh = true  -> GET /ai/predict/5?refresh=true
+   * Nếu gửi `?refresh=false`, backend vẫn hiểu đúng (khác 'true' là không ép),
+   * nhưng URL lại thành hai dạng khác nhau cho cùng một yêu cầu -> cache HTTP,
+   * log và số liệu thống kê bị tách đôi vô ích.
+   *
+   * --------------------------------------------------------------------------
+   * 💡 Vì sao kiểu là `{ prediction: AiPrediction }` chứ không phải `AiPrediction`?
+   * Backend trả `{ success: true, data: { prediction: {...} } }`. `fetchData` đã
+   * bóc giúp một lớp `data`, phần còn lại `{ prediction }` phải khai đúng ở đây.
+   * -> Nơi gọi viết: `const { prediction } = await aiApi.predict(5);`
+   */
   predict: (matchId: number, refresh = false) =>
     fetchData<{ prediction: AiPrediction }>(`/ai/predict/${matchId}`, refresh ? { refresh: 'true' } : undefined),
 
+  /**
+   * Cấu hình AI hiện tại — MIỄN PHÍ và KHÔNG bị aiLimiter chặn (ai.route.ts),
+   * nên gọi thoải mái khi mở màn hình.
+   *
+   *   gemini_enabled  Có key Gemini dùng được hay không
+   *   model           Tên model thật (vd 'gemini-2.5-flash'), hoặc
+   *                   'elo-statistical-v1' khi đang chạy dự phòng
+   *   fallback        Câu mô tả mô hình dự phòng, hiện thẳng được cho người dùng
+   *
+   * 👉 Dùng để chọn nhãn hiển thị TRƯỚC khi người dùng bấm dự đoán, thay vì
+   *    đợi có kết quả rồi mới biết mình đang xem AI thật hay công thức thống kê.
+   *
+   * ⚠️ Backend còn trả thêm `key_pool` (tổng số key, số key rảnh, số key đang
+   * bị phạt nghỉ vì hết lượt — đã che chuỗi key). Kiểu ở đây CỐ TÌNH không khai
+   * để app không phụ thuộc vào thông tin vận hành nội bộ. Muốn làm màn hình
+   * quản trị hiển thị hồ key thì bổ sung vào generic bên dưới — dữ liệu đã có
+   * sẵn trong response, TypeScript chỉ đang không nhìn thấy nó thôi.
+   */
   status: () => fetchData<{ gemini_enabled: boolean; model: string; fallback: string }>('/ai/status'),
 };
 
 export const rankingApi = {
+  /**
+   * Bảng xếp hạng FIFA — dữ liệu tĩnh trong DB, KHÔNG gọi AI, không tốn tiền,
+   * không cần đăng nhập.
+   *
+   * Một lời gọi trả về ba phần (xem `FifaRankingResponse` trong types/index.ts):
+   *
+   *   rankings[]     Top `limit` đội của kỳ công bố gần nhất
+   *   vietnam        ⭐ Hạng của Việt Nam, LẤY RIÊNG BẰNG MỘT TRUY VẤN KHÁC
+   *   snapshot_date  Ngày FIFA công bố kỳ này — PHẢI hiện lên, nếu không người
+   *                  dùng tưởng đây là số liệu của hôm nay
+   *
+   * 🎯 VÌ SAO `vietnam` TÁCH RIÊNG MÀ KHÔNG PHẢI LỌC TỪ `rankings`?
+   * Việt Nam hạng ~110 thế giới. Gọi `fifa(5)` để hiện "Top 5" thì trong mảng
+   * `rankings` KHÔNG BAO GIỜ có Việt Nam. Backend chạy song song hai truy vấn
+   * (ranking.controller.ts) nên `vietnam` luôn có mặt dù limit nhỏ đến đâu —
+   * đây chính là cách HomeHero.tsx hiện được hạng VN trong một khối nhỏ.
+   *
+   * @param limit Số đội muốn lấy. Backend: mặc định 50, TỐI ĐA 250 — truyền
+   *              lớn hơn sẽ bị Zod chặn và trả 400, không phải tự cắt bớt.
+   *              Ở đây để 30 vì màn hình BXH chỉ cuộn tới đó là đủ.
+   *
+   * 💡 Đọc `change` của mỗi đội: DƯƠNG = tăng hạng (mũi tên xanh lên),
+   *    ÂM = tụt hạng, 0 = giữ nguyên. `previous_rank === null` = kỳ đầu tiên
+   *    có trong kho, chưa có gì để so -> đừng vẽ mũi tên.
+   *
+   * ⚠️ `vietnam` có thể là `null` khi kho dữ liệu chưa cào về kỳ nào. Đó là
+   *    trạng thái hợp lệ, không phải lỗi -> hiện "Chưa có dữ liệu", đừng crash.
+   */
   fifa: (limit = 30) => fetchData<FifaRankingResponse>('/ranking/fifa', { limit }),
 };
 

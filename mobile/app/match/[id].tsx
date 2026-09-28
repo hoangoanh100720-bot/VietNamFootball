@@ -35,7 +35,7 @@ import { FixtureItem } from '@/components/match/FixtureItem';
 import { Button } from '@/components/common/Button';
 import { matchesApi } from '@/api/endpoints';
 import { useLiveScore } from '@/hooks/useLiveScore';
-import { formatDateTime, formatNumber } from '@/utils/format';
+import { formatDateTime, formatNumber, formatKickoff } from '@/utils/format';
 import type { MatchEvent } from '@/types';
 import { Seo } from '@/components/common/Seo';
 
@@ -220,15 +220,17 @@ export default function MatchDetailScreen() {
           <Card>
             <InfoRow label="Giải đấu" value={match.competition} />
             {match.round && <InfoRow label="Vòng đấu" value={match.round} />}
-            <InfoRow label="Thời gian" value={formatDateTime(match.kickoff_at)} tabular />
+            <InfoRow label="Thời gian" value={formatKickoff(match)} tabular />
             <InfoRow label="Sân vận động" value={match.venue ?? '—'} />
             <InfoRow label="Thành phố" value={match.city ?? '—'} />
             <InfoRow
               label="Khán giả"
               value={match.attendance ? formatNumber(match.attendance) : '—'}
               tabular
-              last
+              last={!match.note}
             />
+            {/* Ghi chú khi tỷ số một mình kể sai: xử thua, dời lịch, sân trung lập… */}
+            {match.note && <InfoRow label="Ghi chú" value={match.note} last />}
           </Card>
 
           {/* =============== ⭐ HỎI AI VỀ TRẬN NÀY =============== */}
@@ -438,11 +440,17 @@ function EventRow({ event, last }: { event: MatchEvent; last: boolean }) {
           tên loại sự kiện rồi). Bỏ phần detail khi nó trùng nhãn — bản đầu
           hiện "Bàn thắng · Bàn thắng".
         */}
+        {/*
+          Dòng phụ: LOẠI sự kiện + chi tiết + ĐỘI. Có tên đội thì người xem biết
+          ngay bàn của bên nào (dữ liệu thật có cả bàn của đối thủ và phản lưới nhà:
+          "Chatchai · Phản lưới · Thái Lan" nghĩa là Việt Nam được bàn).
+        */}
         {event.player_name && (
           <AppText variant="caption" tone="faint">
-            {event.detail && event.detail !== cfg.label
-              ? `${cfg.label} · ${event.detail}`
-              : cfg.label}
+            {[cfg.label, event.detail && event.detail !== cfg.label ? event.detail : null,
+              event.type === 'own_goal' ? null : event.team_name]
+              .filter(Boolean)
+              .join(' · ')}
           </AppText>
         )}
       </View>

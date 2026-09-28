@@ -79,7 +79,7 @@ import { KnowledgeSearch } from '@/components/ai/KnowledgeSearch';
 import { AiAssistant } from '@/components/ai/AiAssistant';
 import { StatsPanel } from '@/components/stats/StatsPanel';
 import { aiApi, matchesApi, rankingApi } from '@/api/endpoints';
-import { formatDateTime, formatRelative } from '@/utils/format';
+import { formatDateTime, formatRelative, formatKickoff } from '@/utils/format';
 import { HeroBanner, RiceWreath } from '@/components/decor';
 import { Seo } from '@/components/common/Seo';
 import type { AiPrediction, Match } from '@/types';
@@ -693,7 +693,7 @@ function PredictionCard({
             {match.home_team.name} vs {match.away_team.name}
           </AppText>
           <AppText variant="caption" tone="faint" tabular center>
-            {formatDateTime(match.kickoff_at)} · {formatRelative(match.kickoff_at)}
+            {formatKickoff(match)} · {formatRelative(match.kickoff_at)}
           </AppText>
         </View>
         <TeamLogo

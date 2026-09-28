@@ -20,7 +20,7 @@ import { useTheme } from '@/theme';
 import { AppText } from '@/components/common/Text';
 import { Card, Badge } from '@/components/common/Card';
 import { TeamLogo } from '@/components/common/TeamLogo';
-import { formatDateShort, formatTime, getMatchResult, resultLabel } from '@/utils/format';
+import { formatDateShort, getMatchResult, resultLabel, formatKickoffTime } from '@/utils/format';
 import type { Match } from '@/types';
 
 export function FixtureItem({ match, onPress }: { match: Match; onPress?: () => void }) {
@@ -83,7 +83,7 @@ export function FixtureItem({ match, onPress }: { match: Match; onPress?: () => 
               </AppText>
             ) : (
               <AppText variant="bodyBold" tabular tone="muted">
-                {formatTime(match.kickoff_at)}
+                {formatKickoffTime(match)}
               </AppText>
             )}
           </View>

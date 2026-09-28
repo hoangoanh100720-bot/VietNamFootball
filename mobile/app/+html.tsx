@@ -52,7 +52,7 @@ import { ScrollViewStyleReset } from 'expo-router/html';
 import type { ReactNode } from 'react';
 
 /** ⚠️ ĐỔI THÀNH TÊN MIỀN THẬT CỦA BẠN TRƯỚC KHI TRIỂN KHAI */
-const SITE_URL = 'https://doituyenvietnam.vn';
+const SITE_URL = 'https://bongda.oanh.online';
 
 const SITE_NAME = 'Đội tuyển Việt Nam';
 

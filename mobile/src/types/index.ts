@@ -124,6 +124,10 @@ export interface Match {
   home_team: Team;
   away_team: Team;
   kickoff_at: string;   // chuỗi ISO theo giờ UTC
+  /** Đã có NGÀY nhưng chưa công bố GIỜ — app hiện "chưa có giờ" thay vì giờ trong kickoff_at */
+  kickoff_time_tbd?: boolean;
+  /** Ghi chú khi tỷ số một mình kể sai (xử thua, dời lịch, sân trung lập…) */
+  note?: string | null;
   venue: string | null;
   city: string | null;
   status: MatchStatus;
@@ -149,6 +153,8 @@ export interface MatchEvent {
   extra_minute: number | null;
   type: MatchEventType;
   detail: string | null;
+  /** Tên đội của sự kiện ("Thái Lan") — để biết bàn của đội nào */
+  team_name?: string | null;
 }
 
 export interface LiveScore {

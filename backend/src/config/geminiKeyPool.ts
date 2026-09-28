@@ -230,6 +230,43 @@ function isQuotaError(err: unknown): boolean {
  *   403 PERMISSION_DENIED — dự án bị chặn, hoặc chưa bật Generative Language API
  *   400 API_KEY_INVALID   — key gõ sai, thiếu ký tự
  */
+/**
+ * ⭐ LỖI MẠNG TẠM THỜI — thử lại là qua, KHÔNG phải lỗi của key.
+ *
+ * 🐛 Vì sao cần nhóm này? Đo thực tế ngày 27/09/2026: 10-20% lượt gọi tới
+ * generativelanguage.googleapis.com từ máy phát triển bị TREO giữa chừng rồi
+ * chết vì hết giờ, trong khi lượt gọi bình thường chỉ mất ~1,3 giây. Trước
+ * đây loại lỗi này rơi vào nhánh 'lỗi khác' và bị TRẢ VỀ NGAY, nên chỉ một
+ * lượt xui là cả câu hỏi của người dùng hỏng.
+ *
+ * Phân biệt với lỗi thật (prompt sai, model không tồn tại): những lỗi đó có
+ * mã 400 kèm mô tả, thử lại bao nhiêu lần cũng vẫn sai.
+ */
+function isTransientError(err: unknown): boolean {
+  const text = errorToText(err);
+
+  return (
+    text.includes('aborted') ||          // AbortSignal.timeout() của ta cắt lượt treo
+    text.includes('quá thời gian chờ') || // thông báo tiếng Việt của chính ta
+    text.includes('timeout') ||
+    text.includes('timed out') ||
+    text.includes('etimedout') ||
+    text.includes('econnreset') ||
+    text.includes('econnrefused') ||
+    text.includes('enotfound') ||
+    text.includes('socket hang up') ||
+    text.includes('fetch failed') ||
+    text.includes('terminated') ||
+    text.includes('und_err') ||          // lỗi tầng HTTP của undici (Node)
+    text.includes('network') ||
+    text.includes('unavailable') ||      // 503 phía Google
+    text.includes('internal error') ||   // 500 phía Google
+    text.includes('502') ||
+    text.includes('503') ||
+    text.includes('504')
+  );
+}
+
 function isDeadKeyError(err: unknown): boolean {
   const text = errorToText(err);
 
@@ -303,18 +340,48 @@ function penalize(slot: KeySlot): void {
  * @param fn       Việc cần làm với client Gemini
  * @returns        Kết quả của fn, hoặc null nếu mọi key đều bận/hỏng
  */
+export interface KeyRotationOptions {
+  /** Thời gian chờ tối đa cho MỘT lượt gọi (mặc định GEMINI_ATTEMPT_TIMEOUT_MS) */
+  attemptTimeoutMs?: number;
+  /** Mốc thời gian (Date.now()) mà toàn bộ việc này phải dừng — hết thì không thử tiếp */
+  deadline?: number;
+  /** Số lượt thử tối đa (mặc định GEMINI_MAX_ATTEMPTS, ít nhất bằng số key) */
+  maxAttempts?: number;
+}
+
 export async function runWithKeyRotation<T>(
   taskName: string,
-  fn: (client: GoogleGenAI) => Promise<T>
+  fn: (client: GoogleGenAI, signal: AbortSignal) => Promise<T>,
+  options: KeyRotationOptions = {}
 ): Promise<T | null> {
   const total = getKeyCount();
   if (total === 0) return null;
 
-  // Thử nhiều nhất bằng đúng số key đang có: mỗi key được một cơ hội.
-  // Thử nhiều hơn cũng vô nghĩa vì đã đi hết hồ.
+  /**
+   * Mặc định 30 giây (GEMINI_TIMEOUT_MS) cho các tác vụ NẶNG như OCR ảnh hay
+   * nhúng vector — chúng chạy lâu là chuyện bình thường, cắt ở 10 giây sẽ giết
+   * nhầm việc đang chạy tốt. Riêng trợ lý chat tự truyền mức 10 giây của nó.
+   */
+  const attemptTimeoutMs = options.attemptTimeoutMs ?? env.GEMINI_TIMEOUT_MS;
+  /**
+   * Số lượt thử: ít nhất phải bằng số key (để mỗi key được một cơ hội khi hết
+   * quota), nhưng cũng đủ nhiều để vượt qua những lượt TREO do mạng.
+   */
+  const maxAttempts = Math.max(options.maxAttempts ?? env.GEMINI_MAX_ATTEMPTS, total);
+
   let lastError: unknown = null;
 
-  for (let attempt = 0; attempt < total; attempt += 1) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    /**
+     * Hết hạn chung -> dừng, đừng bắt người dùng chờ thêm. Cần tối thiểu 1 giây
+     * mới bõ công thử: dưới mức đó thì chắc chắn không kịp.
+     */
+    if (options.deadline !== undefined && options.deadline - Date.now() < 1_000) {
+      logger.warn(
+        '[Gemini:' + taskName + '] Hết thời gian cho phép sau ' + attempt + ' lượt thử.'
+      );
+      return null;
+    }
     const slot = acquireSlot();
 
     if (!slot) {
@@ -332,11 +399,65 @@ export async function runWithKeyRotation<T>(
     }
 
     try {
-      const result = await fn(slot.client);
+      /**
+       * ⏱️ ĐỒNG HỒ RIÊNG CHO TỪNG LƯỢT.
+       *
+       * Hai lớp bảo vệ, vì chúng bắt hai tình huống khác nhau:
+       *   1. signal  — báo cho SDK huỷ lời gọi, giải phóng kết nối đang treo.
+       *   2. race    — trả quyền điều khiển về cho ta ĐÚNG GIỜ, kể cả khi hàm
+       *                bên trong lỡ bỏ qua signal (SDK cũ, thư viện khác).
+       * Thiếu lớp 2 thì một lượt "điếc" tín hiệu huỷ vẫn treo nguyên như cũ.
+       */
+      /**
+       * ⏳ CHỜ NGẮN TRƯỚC, DÀI DẦN SAU (lượt 1: 1x, lượt 2: 2x, lượt 3: 3x…).
+       *
+       * Vì sao không dùng một mốc cố định? Hai tình huống trông giống nhau mà
+       * cách xử lý ngược nhau:
+       *   • Mạng TREO (Google không trả lời) -> chờ thêm vô ích, thoát càng sớm
+       *     càng tốt để thử lại.
+       *   • Câu trả lời DÀI THẬT -> cắt sớm là phí token và phải làm lại.
+       * Lượt đầu cho là treo nên chờ ngắn; lượt sau vẫn chậm thì nhiều khả năng
+       * model đang viết thật, nên kiên nhẫn hơn.
+       */
+      const patience = attemptTimeoutMs * (attempt + 1);
+      const perAttempt = Math.min(
+        patience,
+        options.deadline !== undefined ? Math.max(1_000, options.deadline - Date.now()) : patience
+      );
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(new Error('Gemini timeout: quá thời gian chờ ' + perAttempt + 'ms')), perAttempt);
+
+      let result: T;
+      try {
+        result = await Promise.race([
+          fn(slot.client, controller.signal),
+          new Promise<never>((_, reject) => {
+            controller.signal.addEventListener('abort', () => reject(controller.signal.reason), { once: true });
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+
       slot.okCount += 1;
       return result;
     } catch (err) {
       lastError = err;
+
+      /**
+       * --- Loại 0: MẠNG TRỤC TRẶC (treo, đứt kết nối, 5xx của Google) ---
+       * Không phải lỗi của key nên KHÔNG phạt key. Chỉ thử lại — lượt sau
+       * thường mở kết nối mới và đi ngay trong ~1,3 giây.
+       */
+      if (isTransientError(err)) {
+        slot.otherErrors += 1;
+        logger.warn(
+          '[Gemini:' + taskName + '] Lượt ' + (attempt + 1) + '/' + maxAttempts +
+            ' trục trặc mạng với key ' + slot.label + ' (' +
+            (err instanceof Error ? err.message : String(err)).slice(0, 80) + '). Thử lại.'
+        );
+        continue;
+      }
 
       // --- Loại 1: tạm hết lượt -> cho nghỉ, đổi key, thử lại ---
       if (isQuotaError(err)) {

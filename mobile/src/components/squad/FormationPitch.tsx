@@ -282,7 +282,8 @@ function PitchPlayer({
       */}
       {hasMatchData && (
         <>
-          <RatingBadge rating={player.rating ?? null} isMotm={player.is_motm ?? false} />
+          {/* Trận chưa có điểm (dữ liệu thật chưa có nguồn chấm) thì không vẽ ô "–" trống */}
+          {player.rating != null && <RatingBadge rating={player.rating} isMotm={player.is_motm ?? false} />}
           <GoalMarks goals={player.match_goals ?? 0} />
         </>
       )}

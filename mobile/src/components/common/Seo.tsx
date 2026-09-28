@@ -50,7 +50,7 @@
 import Head from 'expo-router/head';
 
 /** ⚠️ Phải TRÙNG với SITE_URL trong app/+html.tsx */
-const SITE_URL = 'https://doituyenvietnam.vn';
+const SITE_URL = 'https://bongda.oanh.online';
 const SITE_NAME = 'Đội tuyển Việt Nam';
 
 interface SeoProps {

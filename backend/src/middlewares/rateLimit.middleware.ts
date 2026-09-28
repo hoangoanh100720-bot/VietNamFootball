@@ -42,7 +42,12 @@ export const generalLimiter = rateLimit({
 /** Áp riêng cho /auth/login và /auth/register */
 export const authLimiter = rateLimit({
   ...baseOptions,
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  /**
+   * ⚠️ Cửa sổ 15 phút RIÊNG, không dùng chung RATE_LIMIT_WINDOW_MS.
+   * Giới hạn chung đã rút xuống 1 phút; nếu đăng nhập dùng chung thì "5 lần sai"
+   * sẽ thành 5 lần sai MỖI PHÚT — kẻ dò mật khẩu nhanh gấp 15 lần.
+   */
+  windowMs: 15 * 60 * 1000,
   max: env.AUTH_RATE_LIMIT_MAX,
   // Chỉ đếm những lần THẤT BẠI -> đăng nhập đúng nhiều lần không bị chặn
   skipSuccessfulRequests: true,

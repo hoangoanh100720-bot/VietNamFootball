@@ -35,7 +35,7 @@ import type { H2HSummary, MatchEvent, MatchWithTeams } from '@/types';
 const MATCH_SELECT = `
   SELECT
     m.id, m.competition, m.round, m.home_team_id, m.away_team_id,
-    m.kickoff_at, m.venue, m.city, m.status,
+    m.kickoff_at, m.kickoff_time_tbd, m.venue, m.city, m.status, m.note,
     m.home_score, m.away_score, m.minute, m.attendance,
     m.tv_channels,  -- ['VTV5','FPT Play'] — Senior mode hiện nổi bật "Xem kênh nào?" (mục 7.3)
     json_build_object(
@@ -163,13 +163,19 @@ export async function getMatchEvents(matchId: number): Promise<MatchEvent[]> {
   const { rows } = await query<MatchEvent>(
     `SELECT e.id, e.match_id, e.team_id, e.player_id, e.minute, e.extra_minute,
             e.type, e.detail,
-            p.short_name AS player_name
+            -- Cầu thủ không có trong bảng players (đối thủ, người đá phản lưới)
+            -- được lưu tên ở player_label — thiếu nó thì bàn của đối thủ hiện trơ
+            -- trọi "Bàn thắng", không biết ai ghi, của đội nào.
+            COALESCE(p.short_name, e.player_label) AS player_name,
+            t.name AS team_name
      FROM match_events e
      -- LEFT JOIN: giữ lại sự kiện kể cả khi không gắn với cầu thủ nào
      -- (vd: sự kiện VAR). Nếu dùng JOIN thường thì các dòng đó bị loại bỏ.
      LEFT JOIN players p ON p.id = e.player_id
+     LEFT JOIN teams t ON t.id = e.team_id
      WHERE e.match_id = $1
-     ORDER BY e.minute ASC, e.id ASC`,
+     -- phút bù giờ (45+2) phải đứng SAU phút 45 và TRƯỚC phút 46
+     ORDER BY e.minute ASC, COALESCE(e.extra_minute, 0) ASC, e.id ASC`,
     [matchId]
   );
   return rows;

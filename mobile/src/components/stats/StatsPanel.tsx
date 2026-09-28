@@ -33,7 +33,7 @@ import { Button } from '@/components/common/Button';
 import { LastMatchCard } from './LastMatchCard';
 import { PlayerLeaderboard } from './PlayerLeaderboard';
 import { statsApi } from '@/api/endpoints';
-import { formatDateShort } from '@/utils/format';
+import { formatDateShort, formatDayMonth } from '@/utils/format';
 import type { StatsMatch } from '@/types';
 
 const RESULT_SHORT = { win: 'T', draw: 'H', lose: 'B' } as const;
@@ -165,7 +165,7 @@ function MatchStatsRow({ match, last }: { match: StatsMatch; last: boolean }) {
       })}
     >
       <AppText variant="caption" tone="faint" tabular style={{ width: 42 }}>
-        {formatDateShort(match.kickoff_at)}
+        {formatDayMonth(match.kickoff_at)}
       </AppText>
 
       {/* Chữ T/H/B trong huy hiệu màu — chữ là kênh chính, màu là kênh phụ */}

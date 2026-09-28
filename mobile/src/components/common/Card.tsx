@@ -169,7 +169,12 @@ export function InfoRow({
         gap: t.spacing.lg,
       }}
     >
-      <AppText variant="body" tone="muted">
+      {/*
+        flexShrink 0: NHÃN không bao giờ co lại — phần GIÁ TRỊ bên phải mới là thứ
+        được xuống dòng. Thiếu dòng này, ở giao diện người lớn tuổi (chữ to) nhãn
+        "Nơi sinh" bị bẻ thành "Nơi / sinh" khi giá trị dài (Long Hải, Bà Rịa – Vũng Tàu).
+      */}
+      <AppText variant="body" tone="muted" style={{ flexShrink: 0 }}>
         {label}
       </AppText>
       <AppText

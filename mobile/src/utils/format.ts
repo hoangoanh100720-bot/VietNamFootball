@@ -42,7 +42,26 @@ export function formatDateShort(iso: string | Date): string {
   return weekday.charAt(0).toUpperCase() + weekday.slice(1) + ', ' + dayMonth;
 }
 
+/** "26/09" — cho cột hẹp (danh sách trận ở tab Thống kê), nơi "Thứ Bảy, 26-09" bị vỡ 3 dòng */
+export function formatDayMonth(iso: string | Date): string {
+  return new Date(iso).toLocaleDateString(LOCALE, { timeZone: TZ, day: '2-digit', month: '2-digit' });
+}
+
 /** "19:30 · 08/10/2026" */
+/**
+ * Giờ bóng lăn cho một trận. Trận mới có NGÀY mà chưa công bố GIỜ (kickoff_time_tbd)
+ * thì trả "Chưa có giờ" — tuyệt đối không in giờ tạm lưu trong kickoff_at (12:00),
+ * người xem sẽ tưởng đó là giờ thật.
+ */
+export function formatKickoffTime(match: { kickoff_at: string | Date; kickoff_time_tbd?: boolean }): string {
+  return match.kickoff_time_tbd ? 'Chưa có giờ' : formatTime(match.kickoff_at);
+}
+
+/** Như formatDateTime nhưng biết trận chưa có giờ: "05/01/2027 · chưa có giờ" */
+export function formatKickoff(match: { kickoff_at: string | Date; kickoff_time_tbd?: boolean }): string {
+  return match.kickoff_time_tbd ? `${formatDate(match.kickoff_at)} · chưa có giờ` : formatDateTime(match.kickoff_at);
+}
+
 export function formatDateTime(iso: string | Date): string {
   return formatTime(iso) + ' · ' + formatDate(iso);
 }

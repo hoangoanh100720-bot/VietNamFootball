@@ -131,11 +131,17 @@ Trả lời câu hỏi về Đội tuyển Bóng đá Quốc gia Việt Nam: l�
    điều này." Một câu trả lời trung thực rằng không biết LUÔN tốt hơn một con số
    nghe có vẻ đúng.
 
-3. TUYỆT ĐỐI KHÔNG NÓI VỀ CÁ CƯỢC.
-   Không đưa tỷ lệ kèo, không gợi ý đặt cược, không bình luận về nhà cái, không
-   dự đoán tỷ số cho mục đích cá cược. Cá cược thể thao là hành vi vi phạm pháp
-   luật Việt Nam. Gặp câu hỏi loại này, hãy từ chối lịch sự và đổi sang nói về
-   chuyên môn bóng đá.
+3. KHÔNG TƯ VẤN CÁ CƯỢC — NHƯNG VẪN PHÂN TÍCH, DỰ ĐOÁN THOẢI MÁI.
+   ĐƯỢC LÀM (và nên làm nhiệt tình): dự đoán tỷ số, khả năng thắng/hoà/thua,
+   nhận định phong độ, đội hình, đối đầu, cầu thủ đáng chú ý — như một bình
+   luận viên.
+   Kể cả khi người dùng hỏi kèm ý cá cược ("nên vào cửa nào", "xuống tiền"),
+   VẪN đưa dự đoán tỷ số và khả năng thắng/hoà/thua cụ thể kèm lý do.
+   KHÔNG làm: bịa tỷ lệ kèo/odds (app không có dữ liệu này), khuyên đặt tiền
+   hay "vào cửa" nào, giới thiệu nhà cái, hướng dẫn cá cược.
+   Câu hỏi có ý cá cược: kết thúc câu trả lời bằng một câu khuyến cáo rằng dự
+   đoán chỉ để tham khảo, cá độ bóng đá trái phép là vi phạm pháp luật Việt Nam
+   và không nên đặt cược — trừ khi tin nhắn có ghi chú hệ thống nói sẽ tự thêm.
 
 4. CHỈ NÓI VỀ BÓNG ĐÁ VIỆT NAM.
    Câu hỏi ngoài phạm vi (chính trị, y tế, lập trình, showbiz...) thì từ chối
@@ -161,9 +167,18 @@ Hỏi: "Việt Nam đang thắng mấy-mấy?"
 → Gọi get_live_matches. Có trận: "Việt Nam đang dẫn Nepal 2-0 ở phút 67 (cập nhật 19:45)."
 → Không có trận: "Hiện không có trận nào đang diễn ra. Trận tới của đội tuyển là..."
 
-Hỏi: "Cho mình xin kèo trận tối nay"
-→ "Mình không hỗ trợ thông tin cá cược nhé. Nhưng mình có thể phân tích phong độ
-   và lịch sử đối đầu hai đội nếu bạn muốn."
+Hỏi: "Nên xuống tiền cửa Việt Nam hay Malaysia trận tới?"
+→ Gọi get_fixtures + get_head_to_head, rồi: "Mình nghiêng về Việt Nam thắng 2-0:
+   ... (lý do). Dự đoán chỉ để tham khảo thôi nhé — cá độ bóng đá trái phép là vi
+   phạm pháp luật Việt Nam, bạn đừng đặt cược."
+
+Hỏi: "Nhà cái nào uy tín?"
+→ "Mình không giới thiệu nhà cái hay hướng dẫn cá cược nhé. Nhưng mình có thể dự
+   đoán tỷ số trận bạn quan tâm."
+
+Hỏi: "Dự đoán tỷ số trận Việt Nam gặp Thái Lan"
+→ Gọi get_recent_matches + get_head_to_head, rồi đưa dự đoán cụ thể kèm lý do:
+   "Mình nghiêng về Việt Nam thắng 2-1: ... (phong độ, đối đầu, lực lượng)."
 
 Hỏi: "Vì sao Tiến Linh được 8.3 điểm?"
 → Gọi get_player_ratings với playerName. Đọc bảng giải thích rồi liệt kê từng
@@ -186,14 +201,46 @@ Hỏi: "Hôm nay trời mưa không?"
  *      còn đoạn kiểm tra này là code, không thương lượng được
  *   3. NHANH — trả lời tức thì thay vì chờ vài giây
  *
- * ⚠️ Danh sách để KHÔNG DẤU và so trên chuỗi đã bỏ dấu, vì người dùng hay gõ
- * không dấu. Chỉ chặn "cá cược" mà không chặn "ca cuoc" là bỏ lọt gần hết.
+ * ⚠️ HAI DANH SÁCH, vì bỏ dấu làm nhiều từ trùng nhau:
+ *   • KHÔNG DẤU — cụm chỉ có một nghĩa dù bỏ dấu ("ca cuoc", "soi keo").
+ *     So trên chuỗi đã bỏ dấu, vì người dùng hay gõ không dấu.
+ *   • CÓ DẤU — cụm mà bản không dấu trùng với câu thường: "cá độ" -> "ca do"
+ *     trùng "CẢ ĐỘi", "cả đó"; "kèo bóng" -> "keo bong" trùng "KÉO BÓNG";
+ *     "đánh đề" -> "danh de" trùng "đánh để". So trên chuỗi giữ nguyên dấu.
+ *     Bản không dấu của chúng lọt qua lớp này thì system prompt (lớp 2) lo.
  */
-const BETTING_KEYWORDS = [
-  'ca cuoc', 'ca do', 'keo bong', 'ty le keo', 'nha cai', 'soi keo',
-  'keo chap', 'tai xiu', 'bet', 'odds', 'chap 1', 'chap nua trai',
-  'danh de', 'lo de', 'ca cuoc bong da',
+/**
+ * HAI MỨC:
+ *   • SOFT — hỏi về một trận kèm ý cá cược ("soi kèo", "tài xỉu"). Vẫn trả lời
+ *     bằng dự đoán chuyên môn, code gắn thêm BETTING_WARNING ở cuối.
+ *   • HARD — hỏi về chính việc cá cược (nhà cái, cách chơi, lô đề). Không có
+ *     gì để dự đoán -> từ chối ngay, không gọi model.
+ */
+const BETTING_SOFT_PLAIN = [
+  'ca cuoc', 'ty le keo', 'soi keo', 'keo chap', 'tai xiu', 'bet', 'betting',
+  'odds', 'chap nua trai', 'chap 1 trai', 'keo bong da', 'ca do bong da',
 ];
+const BETTING_SOFT_ACCENTED = ['cá độ', 'kèo', 'chấp 1 trái', 'chấp một trái'];
+
+const BETTING_HARD_PLAIN = [
+  'nha cai', 'cach ca cuoc', 'huong dan ca cuoc', 'ca cuoc online',
+  'web ca cuoc', 'trang ca cuoc', 'link ca cuoc',
+];
+const BETTING_HARD_ACCENTED = ['cách cá độ', 'cá độ online', 'đánh đề', 'lô đề'];
+
+/**
+ * So khớp theo CỤM TỪ NGUYÊN VẸN, không theo chuỗi con — nếu không "bet" sẽ
+ * khớp "Betis", "better". Không dùng \b vì \b của JS chỉ hiểu chữ ASCII,
+ * gặp "độ" là sai; thay bằng "không có chữ/số liền trước và liền sau".
+ */
+function phraseRegex(phrases: string[]): RegExp {
+  const escaped = phrases.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return new RegExp(`(?<![\\p{L}\\p{N}])(?:${escaped.join('|')})(?![\\p{L}\\p{N}])`, 'u');
+}
+const BETTING_SOFT_PLAIN_RE = phraseRegex(BETTING_SOFT_PLAIN);
+const BETTING_SOFT_ACCENTED_RE = phraseRegex(BETTING_SOFT_ACCENTED);
+const BETTING_HARD_PLAIN_RE = phraseRegex(BETTING_HARD_PLAIN);
+const BETTING_HARD_ACCENTED_RE = phraseRegex(BETTING_HARD_ACCENTED);
 
 /**
  * Bỏ dấu tiếng Việt để so khớp từ khoá.
@@ -206,23 +253,44 @@ import { removeAccents } from '@/utils/text';
 /**
  * Kiểm tra câu hỏi có liên quan cá cược không.
  *
- * ⚠️ CÓ THỂ CHẶN NHẦM (false positive): "bet" nằm trong "Betis", "alphabet".
- * Đây là đánh đổi CÓ CHỦ ĐÍCH — thà từ chối nhầm một câu vô hại còn hơn để lọt
- * một câu tư vấn cá cược, vì hậu quả pháp lý lệch nhau rất xa.
- *
- * Nếu về sau thấy chặn nhầm nhiều, hãy thay bằng so khớp theo TỪ nguyên vẹn
- * (dùng ranh giới từ \b) thay vì so chuỗi con.
+ * Bản cũ so chuỗi con trên chuỗi bỏ dấu và chặn nhầm cả "Cả đội tuyển có bao
+ * nhiêu cầu thủ?" ("ca doi" chứa "ca do"). Chặn nhầm câu hỏi thường làm trợ lý
+ * trông như bị hạn chế — feature-test giữ cả hai chiều: bẫy phải bị chặn,
+ * câu hợp lệ không bị chặn.
  */
-export function isBettingQuestion(text: string): boolean {
-  const normalized = removeAccents(text);
-  return BETTING_KEYWORDS.some((kw) => normalized.includes(kw));
+export type BettingLevel = 'none' | 'soft' | 'hard';
+
+export function classifyBetting(text: string): BettingLevel {
+  const plain = removeAccents(text);
+  const accented = text.normalize('NFC').toLowerCase();
+  if (BETTING_HARD_PLAIN_RE.test(plain) || BETTING_HARD_ACCENTED_RE.test(accented)) return 'hard';
+  if (BETTING_SOFT_PLAIN_RE.test(plain) || BETTING_SOFT_ACCENTED_RE.test(accented)) return 'soft';
+  return 'none';
 }
 
-/** Câu từ chối chuẩn — viết sẵn để mọi lần từ chối đều nhất quán */
+export function isBettingQuestion(text: string): boolean {
+  return classifyBetting(text) !== 'none';
+}
+
+/** Câu từ chối chuẩn cho mức HARD — viết sẵn để mọi lần từ chối đều nhất quán */
 const BETTING_REFUSAL =
-  'Mình không hỗ trợ thông tin về cá cược hay tỷ lệ kèo nhé — đó là hoạt động ' +
-  'không được phép ở Việt Nam. Nhưng mình có thể giúp bạn xem phong độ gần đây, ' +
-  'lịch sử đối đầu hoặc phân tích chuyên môn về trận đấu. Bạn muốn xem phần nào?';
+  'Mình không hỗ trợ thông tin về nhà cái hay cách cá cược nhé — cá độ bóng đá ' +
+  'trái phép là vi phạm pháp luật Việt Nam. Nhưng mình có thể dự đoán tỷ số, ' +
+  'phân tích phong độ và lịch sử đối đầu của trận bạn quan tâm. Bạn muốn xem trận nào?';
+
+/** Khuyến cáo gắn vào cuối câu trả lời mức SOFT — do code gắn, không nhờ model */
+export const BETTING_WARNING =
+  '⚠️ Lưu ý: dự đoán trên chỉ để tham khảo chuyên môn, không phải lời khuyên đặt ' +
+  'cược. Tham gia cá độ bóng đá trái phép là vi phạm pháp luật Việt Nam và có thể ' +
+  'bị xử phạt hoặc truy cứu trách nhiệm hình sự (Điều 321 Bộ luật Hình sự). ' +
+  'Hãy cổ vũ đội tuyển bằng cả trái tim thôi nhé!';
+
+/** Ghi chú kèm câu hỏi SOFT khi gửi model — không lưu vào lịch sử */
+const BETTING_SOFT_HINT =
+  '\n\n[Ghi chú hệ thống: câu hỏi có yếu tố cá cược. Vẫn đưa dự đoán tỷ số và khả ' +
+  'năng thắng/hoà/thua cụ thể, kèm lý do từ dữ liệu công cụ. Không đưa tỷ lệ ' +
+  'kèo/odds, không khuyên đặt tiền. Hệ thống sẽ tự thêm khuyến cáo pháp lý ở ' +
+  'cuối, bạn không cần viết.]';
 
 // ---------------------------------------------------------------------------
 // KIỂU DỮ LIỆU
@@ -409,7 +477,12 @@ async function recordUsage(userId: number, tokensIn: number, tokensOut: number):
  * ⚠️ Phải NHỎ HƠN thời gian chờ của app (CHAT_TIMEOUT_MS = 60 giây trong
  * mobile/src/api/endpoints.ts) — xem giải thích ở chỗ tính deadline bên dưới.
  */
-const CHAT_TIME_BUDGET_MS = 35_000;
+/**
+ * 45 giây (trước là 35): mỗi lượt gọi Gemini nay bị cắt ở 10 giây nếu treo và
+ * được thử lại, nên ngân sách phải đủ cho 2 vòng hỏi x vài lượt thử. Vẫn nhỏ
+ * hơn 60 giây app chờ, nên app luôn nhận phản hồi thay vì tự ngắt.
+ */
+const CHAT_TIME_BUDGET_MS = 45_000;
 
 const SLOW_MESSAGE =
   'Trợ lý đang trả lời chậm hơn bình thường vì máy chủ AI quá tải. Bạn bấm "Thử lại" sau vài giây nhé.';
@@ -459,7 +532,8 @@ export async function chat(request: ChatRequest): Promise<ChatResponse> {
    * hạn mức. Nguyên tắc: kiểm tra RẺ và CÓ TÍNH CHÍNH SÁCH (từ chối cá cược)
    * chạy trước kiểm tra về TÀI NGUYÊN (còn lượt hay không).
    */
-  if (isBettingQuestion(text)) {
+  const betting = classifyBetting(text);
+  if (betting === 'hard') {
     logger.info('[AI] Từ chối câu hỏi liên quan cá cược (chặn ở lớp lọc từ khoá)');
     const conversationId = await resolveConversation(userId, request.conversationId);
 
@@ -503,7 +577,7 @@ export async function chat(request: ChatRequest): Promise<ChatResponse> {
       parts: [{ text: h.content }],
     }));
 
-  contents.push({ role: 'user', parts: [{ text }] });
+  contents.push({ role: 'user', parts: [{ text: betting === 'soft' ? text + BETTING_SOFT_HINT : text }] });
 
   // =========================================================================
   // ③ + ④ GỌI MODEL VÀ CHẠY VÒNG LẶP CÔNG CỤ
@@ -553,11 +627,13 @@ export async function chat(request: ChatRequest): Promise<ChatResponse> {
       throw AppError.serviceUnavailable(SLOW_MESSAGE);
     }
 
-    const response = await runWithKeyRotation('chat', async (client) =>
-      client.models.generateContent({
-        model: env.GEMINI_MODEL,
-        contents,
-        config: {
+    const response = await runWithKeyRotation(
+      'chat',
+      async (client, signal) =>
+        client.models.generateContent({
+          model: env.GEMINI_MODEL,
+          contents,
+          config: {
           /**
            * systemInstruction tách riêng khỏi `contents` — đây là chỗ Gemini
            * dùng để cache. Nhét system prompt vào contents cũng chạy, nhưng
@@ -574,12 +650,19 @@ export async function chat(request: ChatRequest): Promise<ChatResponse> {
           // Danh sách công cụ — xem services/chat/tools.ts
           tools: [{ functionDeclarations: getToolDeclarations() as never }],
           /**
-           * Huỷ lượt gọi khi hết phần thời gian còn lại. Tối thiểu 3 giây: vòng
-           * cuối còn ít thời gian vẫn nên thử, vì viết câu trả lời thường nhanh.
+           * ⏱️ Dùng signal của TỪNG LƯỢT do hồ key cấp (mặc định 10 giây), KHÔNG
+           * giao cả ngân sách 35 giây cho một lượt.
+           *
+           * 🐛 Bản cũ đưa toàn bộ thời gian còn lại cho một lượt gọi. Mạng tới
+           * Google thỉnh thoảng treo (đo được 10-20% số lượt), và chỉ một lượt
+           * treo là ngốn sạch 35 giây rồi báo "máy chủ AI quá tải" — dù lượt
+           * gọi bình thường chỉ mất ~1,3 giây. Nay treo 10 giây là bỏ, đổi key
+           * và thử lại; ngân sách 35 giây đủ cho 3 lượt.
            */
-          abortSignal: AbortSignal.timeout(Math.max(3_000, deadline - Date.now())),
+          abortSignal: signal,
         },
-      })
+      }),
+      { deadline, attemptTimeoutMs: env.GEMINI_ATTEMPT_TIMEOUT_MS }
     );
 
     if (!response) {
@@ -719,6 +802,8 @@ export async function chat(request: ChatRequest): Promise<ChatResponse> {
     answer =
       'Xin lỗi, mình chưa tra cứu xong câu hỏi này. Bạn thử hỏi ngắn gọn hơn xem sao nhé.';
     logger.warn('[AI] Hết ' + maxRounds + ' vòng mà model chưa cho câu trả lời cuối.');
+  } else if (betting === 'soft') {
+    answer = answer.trimEnd() + '\n\n' + BETTING_WARNING;
   }
 
   // =========================================================================

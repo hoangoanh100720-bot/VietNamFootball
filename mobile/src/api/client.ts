@@ -26,6 +26,8 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { clearAuth, getAccessToken, getRefreshToken, saveTokens } from '@/services/secureStore';
 import type { ApiError, AuthTokens } from '@/types';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 /**
  * ⚠️ ĐỊA CHỈ BACKEND — LỖI SỐ 1 CỦA NGƯỜI MỚI HỌC REACT NATIVE
@@ -41,12 +43,52 @@ import type { ApiError, AuthTokens } from '@/types';
  * Sau đó sửa EXPO_PUBLIC_API_URL trong file .env ở GỐC repo (một file cho cả
  * dự án; `npm start` nạp nó qua `node --env-file=../.env`).
  *
+ * 💡 Khi chạy PHÁT TRIỂN, app còn tự thay IP trong .env bằng IP thật của máy
+ * tính (xem resolveDevUrl ngay bên dưới) — IP trong .env lệch cũng vẫn chạy.
+ *
  * Vì sao tên biến phải bắt đầu bằng EXPO_PUBLIC_?
  * Vì Expo chỉ nhúng những biến có tiền tố đó vào bundle. Đồng thời đây là
  * lời nhắc: nội dung này AI CŨNG ĐỌC ĐƯỢC -> đừng bao giờ để secret ở đây.
  */
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ?? 'http://localhost:5000';
+/**
+ * ⭐ TỰ NHẬN IP MÁY TÍNH KHI CHẠY PHÁT TRIỂN — khỏi sửa .env mỗi lần đổi mạng.
+ *
+ * 🐛 LỖI ĐÃ GẶP THẬT: hôm trước máy tính có IP 192.168.1.50, sáng hôm sau router
+ * cấp IP mới 192.168.1.43. File .env vẫn ghi IP cũ -> Expo Go báo "Failed to
+ * download remote update", app báo "Không kết nối được máy chủ". Router nhà cấp
+ * lại IP (DHCP) là chuyện RẤT thường xảy ra, không phải lỗi hiếm.
+ *
+ * Cách sửa: khi đang phát triển, app ĐÃ BIẾT sẵn IP đúng — chính là địa chỉ nó
+ * vừa tải code JavaScript về từ Metro:
+ *   • Điện thoại / máy ảo: Constants.expoConfig.hostUri = "192.168.1.43:8081"
+ *   • Trình duyệt: window.location.hostname (localhost hoặc IP LAN đang mở)
+ * Backend chạy CÙNG máy tính với Metro, nên chỉ cần thay host, giữ nguyên cổng 5000.
+ *
+ * 🔐 CHỈ thay khi địa chỉ trong .env là địa chỉ NỘI BỘ (localhost, 127.x, 10.x,
+ * 192.168.x, 172.16–31.x). Địa chỉ thật như https://api.doituyenvietnam.vn khi
+ * phát hành thì KHÔNG BAO GIỜ bị động tới.
+ */
+function resolveDevUrl(configured: string): string {
+  const match = configured.match(/^(https?:\/\/)([^/:]+)(.*)$/);
+  if (!match) return configured;
+  const [, scheme, host, rest] = match;
+
+  const isLocal = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host ?? '');
+  if (!isLocal) return configured;
+
+  let devHost: string | undefined;
+  if (Platform.OS === 'web') {
+    devHost = typeof window !== 'undefined' ? window.location.hostname : undefined;
+  } else {
+    devHost = Constants.expoConfig?.hostUri?.split(':')[0];
+  }
+
+  // Không lấy được (bản build thật, không có Metro) -> dùng nguyên giá trị trong .env
+  return devHost ? `${scheme}${devHost}${rest}` : configured;
+}
+
+export const API_URL = resolveDevUrl(process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1');
+export const SOCKET_URL = resolveDevUrl(process.env.EXPO_PUBLIC_SOCKET_URL ?? 'http://localhost:5000');
 const TIMEOUT = Number(process.env.EXPO_PUBLIC_API_TIMEOUT ?? 15000);
 
 export const api: AxiosInstance = axios.create({

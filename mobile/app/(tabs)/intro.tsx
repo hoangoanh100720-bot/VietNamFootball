@@ -178,7 +178,7 @@ export default function IntroTab() {
     <Screen header={hero} onRefresh={() => void query.refetch()} refreshing={query.isRefetching}>
       <Seo
         title="Giới thiệu & Thành tích"
-        description="Lịch sử, tủ danh hiệu và dòng thời gian thành tích của Đội tuyển Bóng đá Quốc gia Việt Nam: 3 lần vô địch Đông Nam Á và 2 lần vào tứ kết Asian Cup."
+        description="Lịch sử, tủ danh hiệu và dòng thời gian thành tích của Đội tuyển Bóng đá Quốc gia Việt Nam: 4 lần vô địch Đông Nam Á và 2 lần vào tứ kết Asian Cup."
         path="/intro"
       />
 

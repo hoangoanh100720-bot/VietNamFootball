@@ -47,3 +47,13 @@ export const isRefusal = (answer: string) => {
   const n = normalize(answer);
   return REFUSAL_PATTERNS.some((p) => n.includes(p));
 };
+
+/** Nhận diện lời KHUYẾN CÁO pháp lý ở cuối câu dự đoán có ý cá cược */
+const WARNING_PATTERNS = [
+  'vi pham phap luat', 'trai phap luat', 'khong nen dat cuoc', 'dung dat cuoc',
+  'khong phai loi khuyen dat cuoc',
+];
+export const isBettingWarning = (answer: string) => {
+  const n = normalize(answer);
+  return WARNING_PATTERNS.some((p) => n.includes(p));
+};

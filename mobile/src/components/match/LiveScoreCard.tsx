@@ -43,7 +43,7 @@ import { AppText } from '@/components/common/Text';
 import { Badge } from '@/components/common/Card';
 import { TeamLogo } from '@/components/common/TeamLogo';
 import { useCountdown } from '@/hooks/useCountdown';
-import { formatDateTime, formatRelative } from '@/utils/format';
+import { formatDateTime, formatRelative, formatKickoff } from '@/utils/format';
 import type { Match } from '@/types';
 
 interface LiveScoreCardProps {
@@ -74,7 +74,8 @@ export function LiveScoreCard({
   const isFinished = status === 'finished';
   const isScheduled = status === 'scheduled';
 
-  const countdown = useCountdown(isScheduled ? match.kickoff_at : null);
+  // Chưa có giờ thì KHÔNG đếm ngược tới một giờ tạm — chỉ nói còn bao lâu theo ngày
+  const countdown = useCountdown(isScheduled && !match.kickoff_time_tbd ? match.kickoff_at : null);
 
   // -----------------------------------------------------------------------
   // HOẠT ẢNH 1: chấm đỏ "ĐANG ĐÁ" nhấp nháy
@@ -186,7 +187,7 @@ export function LiveScoreCard({
                 VS
               </AppText>
               <AppText variant="caption" tone="muted" tabular style={{ marginTop: 2 }}>
-                {formatDateTime(match.kickoff_at).split(' · ')[0]}
+                {formatKickoff(match).split(' · ')[0]}
               </AppText>
             </>
           ) : (

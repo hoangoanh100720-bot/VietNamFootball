@@ -30,3 +30,6 @@ mobile/dist/
 
 # Kết quả chạy bộ đánh giá AI (mỗi lần một file, không đưa lên git)
 backend/eval-results/
+
+# Ban sao .env truoc khi deploy - chua secret, khong duoc commit
+.env.backup-*

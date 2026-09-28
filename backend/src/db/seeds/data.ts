@@ -59,6 +59,7 @@ export const COACH = {
     'Nhậm chức HLV trưởng đội tuyển Việt Nam tháng 5/2024, nổi bật với lối chơi ' +
     'kỷ luật, phòng ngự chắc và chuyển trạng thái nhanh.',
   achievements: [
+    'Vô địch ASEAN Cup 2026 cùng đội tuyển Việt Nam',
     'Vô địch ASEAN Cup 2024 cùng đội tuyển Việt Nam',
     'Vô địch K-League 1 (2021) cùng Jeonbuk Hyundai Motors',
     'Cúp FA Hàn Quốc 2020',

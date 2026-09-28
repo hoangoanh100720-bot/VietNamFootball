@@ -75,7 +75,7 @@ const SLIDES = [
   {
     key: 'glory',
     title: 'Hành trình vinh quang',
-    body: 'Ba lần vô địch Đông Nam Á vào các năm 2008, 2018 và 2024. Hai lần lọt vào tứ kết Asian Cup năm 2007 và 2019.',
+    body: 'Bốn lần vô địch Đông Nam Á vào các năm 2008, 2018, 2024 và 2026. Hai lần lọt vào tứ kết Asian Cup năm 2007 và 2019.',
   },
   {
     key: 'squad',
@@ -99,6 +99,30 @@ export default function OnboardingScreen() {
 
   const [index, setIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+
+  /**
+   * 📐 CHIỀU CAO THẬT CỦA VÙNG CUỘN — để nội dung slide nằm GIỮA màn hình.
+   *
+   * Vì sao phải tự đo thay vì để CSS lo? Trên React Native Web, ScrollView
+   * nằm ngang dựng ra cây DOM thế này:
+   *
+   *   ScrollView          flex-direction: row
+   *     contentContainer  flex-direction: row   <- contentContainerStyle vào đây
+   *       scrollSnapAlign                       <- RNW TỰ CHÈN vì pagingEnabled
+   *         slide của mình
+   *
+   * Hai chỗ làm đứt chuỗi chiều cao: contentContainer là con của một flex ROW
+   * nên `flexGrow: 1` kéo nó theo chiều NGANG chứ không phải dọc; và lớp
+   * scrollSnapAlign chen vào giữa không mang chiều cao xuống cho slide.
+   *
+   * Kết quả: slide chỉ cao bằng nội dung (~300px), `justifyContent: 'center'`
+   * không có khoảng trống nào để căn -> chữ dồn lên đỉnh, chừa mảng trống lớn
+   * bên dưới trên màn hình rộng.
+   *
+   * Đo bằng onLayout cho ra con số chắc chắn đúng ở cả web lẫn iOS/Android,
+   * không phụ thuộc vào chi tiết dựng DOM của RNW (thứ có thể đổi khi nâng cấp).
+   */
+  const [viewportHeight, setViewportHeight] = useState(0);
 
   /** Đánh dấu đã xem rồi vào app — dùng chung cho cả "Bỏ qua" và "Bắt đầu" */
   const finish = () => {
@@ -191,12 +215,35 @@ export default function OnboardingScreen() {
           // 16ms ≈ 60 lần/giây: chấm chỉ báo chạy mượt theo ngón tay
           scrollEventThrottle={16}
           style={{ flex: 1 }}
+          /**
+           * 📐 flexGrow: 1 — THỨ DUY NHẤT GIÚP NỘI DUNG NẰM GIỮA MÀN HÌNH.
+           *
+           * ScrollView nằm ngang chỉ cho phần chứa nội dung cao BẰNG ĐÚNG nội
+           * dung bên trong, kể cả khi bản thân ScrollView đã `flex: 1`. Thiếu
+           * dòng này thì mỗi slide chỉ cao ~300px, `justifyContent: 'center'`
+           * ở dưới không có khoảng trống nào để căn -> chữ dồn hết lên đỉnh và
+           * chừa một mảng trống rất lớn phía dưới (thấy rõ trên màn hình rộng).
+           *
+           * flexGrow: 1 kéo phần chứa cao bằng cả ScrollView; các slide con tự
+           * giãn theo (alignItems mặc định là 'stretch' trên trục chéo), lúc đó
+           * justifyContent mới có chỗ mà căn giữa.
+           */
+          contentContainerStyle={{ flexGrow: 1 }}
+          onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
         >
           {SLIDES.map((slide, i) => (
             <View
               key={slide.key}
               style={{
                 width: SCREEN_WIDTH,
+                // Lần render đầu chưa đo được -> để undefined, slide cao bằng
+                // nội dung như cũ. Ngay sau onLayout là có số thật và nội dung
+                // nhảy vào giữa. Không dùng 0 vì nó sẽ làm slide biến mất.
+                //
+                // minHeight chứ không phải height: màn hình thấp (điện thoại
+                // xoay ngang, cửa sổ web bị kéo dẹt) có nội dung cao hơn khung
+                // thì slide vẫn nở ra được, thay vì bị cắt mất phần dưới.
+                minHeight: viewportHeight || undefined,
                 paddingHorizontal: t.spacing.xl,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -327,7 +374,7 @@ function SlideArt({ index }: { index: number }) {
       return <VietnamFlag size={150} />;
 
     case 1:
-      // Thành tích -> vòng nguyệt quế bông lúa ôm số 3 lần vô địch
+      // Thành tích -> vòng nguyệt quế bông lúa ôm ngôi sao vô địch
       return (
         <RiceWreath size={96}>
           <GoldStar size={40} />

@@ -15,8 +15,13 @@
  *     Ngày sinh lệch giữa các nguồn -> lấy theo số đông, ghi chú ngay tại cầu thủ đó.
  *   • Ảnh: Wikimedia Commons (xem backend/public/players/CREDITS.json).
  *
+ *   • Cân nặng (weight_kg): hồ sơ đăng ký cầu thủ của VPF (vpf.vn/player/...), khớp theo
+ *     ngày sinh. Đây là số CLB khai khi đăng ký giải, không phải số đo trước trận.
+ *   • Chân thuận (preferred_foot): FotMob + Sofascore, khớp theo ngày sinh. Hai nguồn
+ *     lệch nhau hoặc chỉ một nguồn ghi "cả hai chân" -> tra thêm báo chí, ghi chú tại chỗ.
+ *     Crawl ngày 16/09/2026.
+ *
  * ❓ CỐ Ý ĐỂ TRỐNG (không có nguồn mở đáng tin — thà trống còn hơn bịa):
- *   • weight_kg, preferred_foot -> null (app hiện "—")
  *   • market_value_eur -> 0 (app hiện "—"). Giá trị chuyển nhượng là ước tính
  *     của Transfermarkt, dữ liệu có bản quyền, không được thu thập tự động.
  *   • hometown là NƠI SINH theo Wikipedia (không phải quê gốc).
@@ -68,9 +73,10 @@ export const REAL_SQUAD = {
   players: [
   {
     // Q13230786 · en.wikipedia.org/wiki/Lê_Giang_Patrik
+    // Cân nặng: vpf.vn/player/patrik-le-giang/ (hồ sơ đăng ký VPF) · Chân thuận: SoccerWiki — ⚠️ Sofascore ghi "cả hai chân", SoccerWiki ghi phải — lấy phải
     full_name: 'Lê Giang Patrik', short_name: 'Patrik', birth_date: '1992-09-08',
-    hometown: 'Lučenec, Slovakia', height_cm: 188, weight_kg: null,
-    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 1, preferred_foot: null,
+    hometown: 'Lučenec, Slovakia', height_cm: 188, weight_kg: 85,
+    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 1, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an TP.HCM',
     caps: 9, goals: 0,
     photo: { file: 'le-giang-patrik.jpg', credit: 'IQual · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Patrik_Le_Giang.jpg' },
@@ -90,9 +96,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q121547778 · en.wikipedia.org/wiki/Trần_Trung_Kiên
+    // Cân nặng: vpf.vn/player/tran-trung-kien/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Trần Trung Kiên', short_name: 'Trung Kiên', birth_date: '2003-02-09',
-    hometown: 'Pleiku, Gia Lai', height_cm: 191, weight_kg: null,
-    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 21, preferred_foot: null,
+    hometown: 'Pleiku, Gia Lai', height_cm: 191, weight_kg: 78,
+    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 21, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Hoàng Anh Gia Lai',
     caps: 1, goals: 0,
     photo: { file: 'tran-trung-kien.jpg', credit: 'Sao Thể Thao · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Tran_Trung_Kien_2025.png' },
@@ -104,9 +111,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q5215950 · en.wikipedia.org/wiki/Đặng_Văn_Lâm
+    // Cân nặng: vpf.vn/player/dang-van-lam/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Đặng Văn Lâm', short_name: 'Văn Lâm', birth_date: '1993-08-13',
-    hometown: 'Moskva, Nga', height_cm: 188, weight_kg: null,
-    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 23, preferred_foot: null,
+    hometown: 'Moskva, Nga', height_cm: 188, weight_kg: 88,
+    position: 'GK', detailed_position: 'Thủ môn', shirt_number: 23, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 48, goals: 0,
     photo: { file: 'dang-van-lam.jpg', credit: 'El Loko Foto · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:%C4%90%E1%BA%B7ng_V%C4%83n_L%C3%A2m_20191201_(cropped).jpg' },
@@ -124,9 +132,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q111536450 · en.wikipedia.org/wiki/Nguyễn_Văn_Vĩ
+    // Cân nặng: vpf.vn/player/nguyen-van-vi/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Nguyễn Văn Vĩ', short_name: 'Văn Vĩ', birth_date: '1998-02-12',
-    hometown: 'Yên Phong, Bắc Ninh', height_cm: 170, weight_kg: null,
-    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 3, preferred_foot: null,
+    hometown: 'Yên Phong, Bắc Ninh', height_cm: 170, weight_kg: 60,
+    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 3, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Thép Xanh Nam Định',
     caps: 25, goals: 6,
     photo: { file: 'nguyen-van-vi.jpg', credit: 'Sao Thể Thao · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguyen_Van_Vi.png' },
@@ -138,9 +147,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q130752146 · en.wikipedia.org/wiki/Đinh_Quang_Kiệt
+    // Cân nặng: vpf.vn/player/dinh/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Đinh Quang Kiệt', short_name: 'Quang Kiệt', birth_date: '2007-07-16',
-    hometown: 'Long Hải, Bà Rịa – Vũng Tàu', height_cm: 195, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 4, preferred_foot: null,
+    hometown: 'Long Hải, Bà Rịa – Vũng Tàu', height_cm: 195, weight_kg: 84,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 4, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an TP.HCM',
     caps: 1, goals: 0,
     photo: null,
@@ -153,9 +163,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q29311086 · en.wikipedia.org/wiki/Đoàn_Văn_Hậu
+    // Cân nặng: vpf.vn/player/doan-van-hau/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Đoàn Văn Hậu', short_name: 'Văn Hậu', birth_date: '1999-04-19',
-    hometown: 'Hưng Hà, Thái Bình', height_cm: 185, weight_kg: null,
-    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 5, preferred_foot: null,
+    hometown: 'Hưng Hà, Thái Bình', height_cm: 185, weight_kg: 82,
+    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 5, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 47, goals: 2,
     photo: { file: 'doan-van-hau.jpg', credit: 'Amir Ostovari · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:DOAN_VAN_HAU_-_VIE_vs_JPN_-_AFC_ASIAN_CUP_2019.jpg' },
@@ -169,9 +180,10 @@ export const REAL_SQUAD = {
   {
     // Q130261393 · en.wikipedia.org/wiki/Nguyễn_Nhật_Minh
     // ⚠️ Ngày sinh: Wikidata ghi 01/01 (giá trị giữ chỗ) — lấy theo infobox en/vi và bảng đội hình
+    // Cân nặng: vpf.vn/player/nguyen-nhat-minh/ (hồ sơ đăng ký VPF) · Chân thuận: VnExpress ("thuận chân trái") — ⚠️ Sofascore ghi "cả hai chân" — báo chí ghi rõ thuận chân trái
     full_name: 'Nguyễn Nhật Minh', short_name: 'Nhật Minh', birth_date: '2003-07-27',
-    hometown: 'Hải Phòng', height_cm: 178, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 6, preferred_foot: null,
+    hometown: 'Hải Phòng', height_cm: 178, weight_kg: 65,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 6, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Công an TP.HCM',
     caps: 4, goals: 0,
     photo: { file: 'nguyen-nhat-minh.jpg', credit: 'Sao Thể Thao · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguyen_Nhat_Minh_in_2025.png' },
@@ -185,9 +197,10 @@ export const REAL_SQUAD = {
   {
     // Q24450637 · en.wikipedia.org/wiki/Phạm_Xuân_Mạnh
     // ⚠️ Ngày sinh: Bảng đội hình ghi 27/03, Wikidata 02/03 — infobox en, vi và Flashscore cùng ghi 09/02
+    // Cân nặng: vpf.vn/player/pham-xuan-manh/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Phạm Xuân Mạnh', short_name: 'Xuân Mạnh', birth_date: '1996-02-09',
-    hometown: 'Yên Thành, Nghệ An', height_cm: 175, weight_kg: null,
-    position: 'DF', detailed_position: 'Hậu vệ phải', shirt_number: 7, preferred_foot: null,
+    hometown: 'Yên Thành, Nghệ An', height_cm: 175, weight_kg: 68,
+    position: 'DF', detailed_position: 'Hậu vệ phải', shirt_number: 7, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Hà Nội',
     caps: 34, goals: 3,
     photo: { file: 'pham-xuan-manh.jpg', credit: 'Sông Lam Nghệ An FC · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Pham_Xuan_Manh.png' },
@@ -199,9 +212,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q136717942 · en.wikipedia.org/wiki/Khổng_Minh_Gia_Bảo
+    // Cân nặng: vpf.vn/player/khong-minh-gia-bao/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Khổng Minh Gia Bảo', short_name: 'Gia Bảo', birth_date: '2000-07-26',
-    hometown: 'Ba Đình, Hà Nội', height_cm: 175, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 11, preferred_foot: null,
+    hometown: 'Ba Đình, Hà Nội', height_cm: 175, weight_kg: 73,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 11, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an TP.HCM',
     caps: 1, goals: 0,
     photo: null,
@@ -214,9 +228,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q120400674 · en.wikipedia.org/wiki/Trương_Tiến_Anh
+    // Cân nặng: vpf.vn/player/truong-tien-anh/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Trương Tiến Anh', short_name: 'Tiến Anh', birth_date: '1999-04-25',
-    hometown: 'Thanh Miện, Hải Dương', height_cm: 168, weight_kg: null,
-    position: 'DF', detailed_position: 'Hậu vệ cánh phải', shirt_number: 15, preferred_foot: null,
+    hometown: 'Thanh Miện, Hải Dương', height_cm: 168, weight_kg: 68,
+    position: 'DF', detailed_position: 'Hậu vệ cánh phải', shirt_number: 15, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 29, goals: 1,
     photo: { file: 'truong-tien-anh.jpg', credit: 'Sao Thể Thao · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Truong_Tien_Anh_2025_(3).png' },
@@ -228,9 +243,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q27049059 · en.wikipedia.org/wiki/Nguyễn_Thành_Chung
+    // Cân nặng: vpf.vn/player/nguyen-thanh-chung/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Nguyễn Thành Chung', short_name: 'Thành Chung', birth_date: '1997-09-08',
-    hometown: 'Yên Sơn, Tuyên Quang', height_cm: 181, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 16, preferred_foot: null,
+    hometown: 'Yên Sơn, Tuyên Quang', height_cm: 181, weight_kg: 70,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 16, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Hà Nội',
     caps: 44, goals: 0,
     photo: { file: 'nguyen-thanh-chung.jpg', credit: 'Vietnam Today Tv - Việt Nam Hôm Nay · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Thanh_Chung.png' },
@@ -241,9 +257,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q97159587 · en.wikipedia.org/wiki/Bùi_Hoàng_Việt_Anh
+    // Cân nặng: vpf.vn/player/bui-hoang-viet-anh/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Bùi Hoàng Việt Anh', short_name: 'Việt Anh', birth_date: '1999-01-01',
-    hometown: 'Đông Hưng, Thái Bình', height_cm: 184, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 20, preferred_foot: null,
+    hometown: 'Đông Hưng, Thái Bình', height_cm: 184, weight_kg: 82,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: 20, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 30, goals: 1,
     photo: { file: 'bui-hoang-viet-anh.jpg', credit: 'Tuấn Hữu · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Bui_Hoang_Viet_Anh.png' },
@@ -255,9 +272,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q111854038 · en.wikipedia.org/wiki/Phan_Tuấn_Tài
+    // Cân nặng: vpf.vn/player/phan-tuan-tai/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Phan Tuấn Tài', short_name: 'Tuấn Tài', birth_date: '2001-01-07',
-    hometown: 'Buôn Ma Thuột, Đắk Lắk', height_cm: 176, weight_kg: null,
-    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 24, preferred_foot: null,
+    hometown: 'Buôn Ma Thuột, Đắk Lắk', height_cm: 176, weight_kg: 75,
+    position: 'DF', detailed_position: 'Hậu vệ trái', shirt_number: 24, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Thể Công – Viettel',
     caps: 22, goals: 0,
     photo: { file: 'phan-tuan-tai.jpg', credit: 'Tuấn Hữu · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Phan_Tuan_Tai.png' },
@@ -268,9 +286,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q121365794 · en.wikipedia.org/wiki/Lê_Phạm_Thành_Long
+    // Cân nặng: vpf.vn/player/le-pham-thanh-long/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Lê Phạm Thành Long', short_name: 'Thành Long', birth_date: '1996-06-05',
-    hometown: 'Nghĩa Hành, Quảng Ngãi', height_cm: 165, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ phòng ngự', shirt_number: 8, preferred_foot: null,
+    hometown: 'Nghĩa Hành, Quảng Ngãi', height_cm: 165, weight_kg: 64,
+    position: 'MF', detailed_position: 'Tiền vệ phòng ngự', shirt_number: 8, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 21, goals: 0,
     photo: { file: 'le-pham-thanh-long.jpg', credit: 'AxitTDTbenzoic · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Le_Pham_Thanh_Long_2026.jpg' },
@@ -287,9 +306,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q60218139 · en.wikipedia.org/wiki/Đỗ_Hoàng_Hên
+    // Cân nặng: vpf.vn/player/do-hoang-hen/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Đỗ Hoàng Hên', short_name: 'Hoàng Hên', birth_date: '1994-05-16',
-    hometown: 'São Paulo, Brasil', height_cm: 181, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ tấn công', shirt_number: 10, preferred_foot: null,
+    hometown: 'São Paulo, Brasil', height_cm: 181, weight_kg: 74,
+    position: 'MF', detailed_position: 'Tiền vệ tấn công', shirt_number: 10, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Hà Nội',
     caps: 10, goals: 3,
     photo: { file: 'do-hoang-hen.jpg', credit: 'Thplam2004 · CC BY-SA 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:H%C3%AAndrio_with_Nam_Dinh.jpg' },
@@ -310,9 +330,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q61613045 · en.wikipedia.org/wiki/Nguyễn_Hoàng_Đức
+    // Cân nặng: vpf.vn/player/nguyen-hoang-duc/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Nguyễn Hoàng Đức', short_name: 'Hoàng Đức', birth_date: '1998-01-11',
-    hometown: 'Cẩm Giàng, Hải Dương', height_cm: 184, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ trung tâm', shirt_number: 14, preferred_foot: null,
+    hometown: 'Cẩm Giàng, Hải Dương', height_cm: 184, weight_kg: 74,
+    position: 'MF', detailed_position: 'Tiền vệ trung tâm', shirt_number: 14, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 65, goals: 2, role: 'Phó đội trưởng',
     photo: { file: 'nguyen-hoang-duc.jpg', credit: 'Sao Thể Thao · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguyen_Hoang_Duc_in_2025.png' },
@@ -325,9 +346,11 @@ export const REAL_SQUAD = {
   {
     // Q98073771 · en.wikipedia.org/wiki/Nguyễn_Hai_Long
     // ⚠️ Ngày sinh: Wikidata ghi 17/08 — infobox en, vi và bảng đội hình cùng ghi 27/08
+    // Cân nặng: vpf.vn/player/nguyen-hai-long/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Báo Quảng Ninh ("thuận chân phải") — ⚠️ Sofascore ghi "cả hai chân"
     full_name: 'Nguyễn Hai Long', short_name: 'Hai Long', birth_date: '2000-08-27',
-    hometown: 'Tiên Yên, Quảng Ninh', height_cm: null, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ trung tâm', shirt_number: 18, preferred_foot: null,
+    // Chiều cao: infobox Wikipedia để trống — VPF và Sofascore cùng ghi 168 cm
+    hometown: 'Tiên Yên, Quảng Ninh', height_cm: 168, weight_kg: 63,
+    position: 'MF', detailed_position: 'Tiền vệ trung tâm', shirt_number: 18, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Hà Nội',
     caps: 25, goals: 7,
     photo: { file: 'nguyen-hai-long.jpg', credit: 'Tuấn Hữu · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Hai_Long.png' },
@@ -338,9 +361,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q24689101 · en.wikipedia.org/wiki/Nguyễn_Quang_Hải
+    // Cân nặng: vpf.vn/player/nguyen-quang-hai/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Nguyễn Quang Hải', short_name: 'Quang Hải', birth_date: '1997-04-12',
-    hometown: 'Đông Anh, Hà Nội', height_cm: 168, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ tấn công', shirt_number: 19, preferred_foot: null,
+    hometown: 'Đông Anh, Hà Nội', height_cm: 168, weight_kg: 65,
+    position: 'MF', detailed_position: 'Tiền vệ tấn công', shirt_number: 19, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 88, goals: 16, role: 'Đội trưởng',
     photo: { file: 'nguyen-quang-hai.jpg', credit: 'LOTTE MART Vietnam · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:NGUYEN_QUANG_HAI.jpg' },
@@ -355,9 +379,10 @@ export const REAL_SQUAD = {
   {
     // Q124799272 · en.wikipedia.org/wiki/Nguyễn_Ngọc_Mỹ
     // ⚠️ Ngày sinh: Bảng đội hình ghi 20/04 — infobox en, vi và Wikidata cùng ghi 20/02
+    // Cân nặng: vpf.vn/player/nguyen-ngoc-my-2/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Nguyễn Ngọc Mỹ', short_name: 'Ngọc Mỹ', birth_date: '2004-02-20',
-    hometown: 'Nghi Sơn, Thanh Hóa', height_cm: 177, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: 25, preferred_foot: null,
+    hometown: 'Nghi Sơn, Thanh Hóa', height_cm: 177, weight_kg: 72,
+    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: 25, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 0, goals: 0,
     photo: { file: 'nguyen-ngoc-my.jpg', credit: 'AxitTDTbenzoic · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguyen_Ngoc_My.jpg' },
@@ -370,9 +395,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q109430363 · en.wikipedia.org/wiki/Lê_Văn_Đô
+    // Cân nặng: vpf.vn/player/le-van-do/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Lê Văn Đô', short_name: 'Văn Đô', birth_date: '2001-08-07',
-    hometown: 'Tam Kỳ, Quảng Nam', height_cm: 173, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: 26, preferred_foot: null,
+    hometown: 'Tam Kỳ, Quảng Nam', height_cm: 173, weight_kg: 69,
+    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: 26, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 3, goals: 0,
     photo: { file: 'le-van-do.jpg', credit: 'Tuấn Hữu · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Le_Van_Do.png' },
@@ -385,9 +411,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q121608659 · en.wikipedia.org/wiki/Nguyễn_Đình_Bắc
+    // Cân nặng: vpf.vn/player/nguyen-dinh-bac/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Nguyễn Đình Bắc', short_name: 'Đình Bắc', birth_date: '2004-08-19',
-    hometown: 'Hưng Nguyên, Nghệ An', height_cm: 179, weight_kg: null,
-    position: 'FW', detailed_position: 'Tiền đạo cánh', shirt_number: 9, preferred_foot: null,
+    hometown: 'Hưng Nguyên, Nghệ An', height_cm: 179, weight_kg: 72,
+    position: 'FW', detailed_position: 'Tiền đạo cánh', shirt_number: 9, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Công an Hà Nội',
     caps: 22, goals: 8,
     photo: { file: 'nguyen-dinh-bac.jpg', credit: 'Sao Thể Thao · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguy%E1%BB%85n_%C4%90%C3%ACnh_B%E1%BA%AFc.png' },
@@ -399,9 +426,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q27881412 · en.wikipedia.org/wiki/Nguyễn_Xuân_Son
+    // Cân nặng: vpf.vn/player/rafaelson-bezerra-fernandes/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Nguyễn Xuân Son', short_name: 'Xuân Son', birth_date: '1997-03-30',
-    hometown: 'Pirapemas, Brasil', height_cm: 185, weight_kg: null,
-    position: 'FW', detailed_position: 'Tiền đạo cắm', shirt_number: 12, preferred_foot: null,
+    hometown: 'Pirapemas, Brasil', height_cm: 185, weight_kg: 90,
+    position: 'FW', detailed_position: 'Tiền đạo cắm', shirt_number: 12, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Thép Xanh Nam Định',
     caps: 17, goals: 16, role: 'Phó đội trưởng',
     photo: { file: 'nguyen-xuan-son.jpg', credit: 'Sao Thể Thao · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Nguyen_Xuan_Son_vs_Singapore_2024.png' },
@@ -418,9 +446,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q101989106 · en.wikipedia.org/wiki/Nguyễn_Tài_Lộc
+    // Cân nặng: vpf.vn/player/geovane-mango/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore — ⚠️ VPF đăng ký tên Brazil (Geovane Magno)
     full_name: 'Nguyễn Tài Lộc', short_name: 'Tài Lộc', birth_date: '1994-04-14',
-    hometown: 'Governador Valadares, Brasil', height_cm: 188, weight_kg: null,
-    position: 'FW', detailed_position: 'Tiền đạo', shirt_number: 13, preferred_foot: null,
+    hometown: 'Governador Valadares, Brasil', height_cm: 188, weight_kg: 80,
+    position: 'FW', detailed_position: 'Tiền đạo', shirt_number: 13, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 8, goals: 0,
     photo: null,
@@ -442,9 +471,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q135967241 · en.wikipedia.org/wiki/Phạm_Gia_Hưng
+    // Cân nặng: vpf.vn/player/pham-gia-hung/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Phạm Gia Hưng', short_name: 'Gia Hưng', birth_date: '2000-04-26',
-    hometown: 'Đắk Lắk', height_cm: 181, weight_kg: null,
-    position: 'FW', detailed_position: 'Tiền đạo cắm', shirt_number: 17, preferred_foot: null,
+    hometown: 'Đắk Lắk', height_cm: 181, weight_kg: 74,
+    position: 'FW', detailed_position: 'Tiền đạo cắm', shirt_number: 17, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 6, goals: 0,
     photo: null,
@@ -459,9 +489,10 @@ export const REAL_SQUAD = {
   {
     // Q109441331 · en.wikipedia.org/wiki/Nguyễn_Trần_Việt_Cường
     // ⚠️ Ngày sinh: Wikidata ghi 01/01 (giá trị giữ chỗ) — lấy theo infobox en/vi và bảng đội hình
+    // Cân nặng: vpf.vn/player/nguyen-tran-viet-cuong/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Nguyễn Trần Việt Cường', short_name: 'Việt Cường', birth_date: '2000-12-27',
-    hometown: 'Tân Uyên, Bình Dương', height_cm: 180, weight_kg: null,
-    position: 'FW', detailed_position: 'Tiền đạo cánh', shirt_number: 22, preferred_foot: null,
+    hometown: 'Tân Uyên, Bình Dương', height_cm: 180, weight_kg: 63,
+    position: 'FW', detailed_position: 'Tiền đạo cánh', shirt_number: 22, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Becamex TP.HCM',
     caps: 5, goals: 0,
     photo: { file: 'nguyen-tran-viet-cuong.jpg', credit: 'Báo Sài Gòn Giải Phóng · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Tran_viet_cuong.png' },
@@ -475,9 +506,10 @@ export const REAL_SQUAD = {
   withdrawn: [
   {
     // Q19281994 · en.wikipedia.org/wiki/Đỗ_Duy_Mạnh
+    // Cân nặng: vpf.vn/player/do-duy-manh/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Đỗ Duy Mạnh', short_name: 'Duy Mạnh', birth_date: '1996-09-29',
-    hometown: 'Đông Anh, Hà Nội, Việt Nam', height_cm: 180, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: null, preferred_foot: null,
+    hometown: 'Đông Anh, Hà Nội, Việt Nam', height_cm: 180, weight_kg: 77,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: null, preferred_foot: 'right',
     market_value_eur: 0, current_club: 'CLB Hà Nội',
     caps: 73, goals: 2, withdrawn_note: 'Rút lui vì chấn thương',
     photo: { file: 'do-duy-manh.jpg', credit: 'El Loko Foto · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:%C4%90%E1%BB%97_Duy_M%E1%BA%A1nh_20191201_(cropped).jpg' },
@@ -488,9 +520,10 @@ export const REAL_SQUAD = {
   {
     // Q86009149 · en.wikipedia.org/wiki/Lê_Ngọc_Bảo
     // ⚠️ Ngày sinh: vi.wikipedia ghi 29/03 — infobox en và bảng gọi gần đây cùng ghi 27/03
+    // Cân nặng: vpf.vn/player/le-ngoc-bao/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Lê Ngọc Bảo', short_name: 'Ngọc Bảo', birth_date: '1998-03-27',
-    hometown: 'Tuy Hòa, Phú Yên', height_cm: 178, weight_kg: null,
-    position: 'DF', detailed_position: 'Trung vệ', shirt_number: null, preferred_foot: null,
+    hometown: 'Tuy Hòa, Phú Yên', height_cm: 178, weight_kg: 82,
+    position: 'DF', detailed_position: 'Trung vệ', shirt_number: null, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Ninh Bình',
     caps: 4, goals: 0, withdrawn_note: 'Rút lui vì chấn thương',
     photo: { file: 'le-ngoc-bao.jpg', credit: 'Tuấn Hữu · CC BY 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Le_Ngoc_Bao.png' },
@@ -506,9 +539,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q113005949 · en.wikipedia.org/wiki/Khuất_Văn_Khang
+    // Cân nặng: vpf.vn/player/khuat-van-khang/ (hồ sơ đăng ký VPF) · Chân thuận: FotMob + Sofascore
     full_name: 'Khuất Văn Khang', short_name: 'Văn Khang', birth_date: '2003-05-11',
-    hometown: 'Phúc Thọ, Hà Nội', height_cm: 168, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: null, preferred_foot: null,
+    hometown: 'Phúc Thọ, Hà Nội', height_cm: 168, weight_kg: 63,
+    position: 'MF', detailed_position: 'Tiền vệ cánh', shirt_number: null, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Thể Công – Viettel',
     caps: 23, goals: 1, withdrawn_note: 'Rút lui vì chấn thương',
     photo: { file: 'khuat-van-khang.jpg', credit: 'Sao Thể Thao · CC BY-SA 3.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Khuat_Van_Khang_2025.png' },
@@ -518,9 +552,10 @@ export const REAL_SQUAD = {
   },
   {
     // Q125643750 · en.wikipedia.org/wiki/Ngô_Đăng_Khoa
+    // Cân nặng: vpf.vn/player/ngo-dang-khoa/ (hồ sơ đăng ký VPF) · Chân thuận: Sofascore
     full_name: 'Ngô Đăng Khoa', short_name: 'Đăng Khoa', birth_date: '2006-06-30',
-    hometown: 'Perth, Úc', height_cm: 165, weight_kg: null,
-    position: 'MF', detailed_position: 'Tiền đạo cánh', shirt_number: null, preferred_foot: null,
+    hometown: 'Perth, Úc', height_cm: 165, weight_kg: 65,
+    position: 'MF', detailed_position: 'Tiền đạo cánh', shirt_number: null, preferred_foot: 'left',
     market_value_eur: 0, current_club: 'CLB Công an TP.HCM',
     caps: 0, goals: 0, withdrawn_note: 'Rút lui vì chấn thương',
     photo: { file: 'ngo-dang-khoa.jpg', credit: 'AxitTDTbenzoic · CC BY 4.0 · Wikimedia Commons', source: 'https://commons.wikimedia.org/wiki/File:Khoa_Ngo.jpg' },

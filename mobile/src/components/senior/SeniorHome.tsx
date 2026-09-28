@@ -68,8 +68,10 @@ const WEEKDAYS = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ N
  * Giờ 19:00 viết "19 giờ" chứ không "19 giờ 00" — không ai nói "không phút".
  * Dùng giờ của MÁY (getHours), tức giờ Việt Nam với người ở Việt Nam.
  */
-export function kickoffInWords(iso: string): string {
+export function kickoffInWords(iso: string, timeTbd = false): string {
   const d = new Date(iso);
+  // Chưa công bố giờ: chỉ nói ngày, kèm lời báo rõ ràng
+  if (timeTbd) return `${WEEKDAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1} · chưa có giờ đá`;
   const minutes = d.getMinutes();
   const time = minutes === 0 ? `${d.getHours()} giờ` : `${d.getHours()} giờ ${String(minutes).padStart(2, '0')}`;
   return `${time}, ${WEEKDAYS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
@@ -192,7 +194,7 @@ function NextMatchBlock({ match }: { match: Match }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm, marginTop: t.spacing.md }}>
         <Ionicons name="time" size={26} color={t.colors.accentText} />
         <AppText variant="h3" style={{ flex: 1 }}>
-          {kickoffInWords(match.kickoff_at)}
+          {kickoffInWords(match.kickoff_at, match.kickoff_time_tbd)}
         </AppText>
       </View>
 

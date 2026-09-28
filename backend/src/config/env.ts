@@ -78,8 +78,18 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
 
   // ---------- 5. RATE LIMIT (chống spam / brute-force) ----------
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().default(900_000), // 15 phút
-  RATE_LIMIT_MAX: z.coerce.number().int().default(100),
+  /**
+   * Giới hạn chung cho /api/v1: 300 request / 1 phút / IP.
+   *
+   * 🐛 Bản cũ là 100 request / 15 phút. Rà soát 28/09/2026 cho thấy mở ~25 màn
+   * hình liên tiếp là TOÀN BỘ app báo lỗi 429: riêng màn Trận đấu đã gọi 7
+   * request, chưa kể React Query tự tải lại khi quay lại tab. Lại thêm mọi
+   * người dùng chung một Wi-Fi (nhà, quán, trường) dùng CHUNG một IP.
+   * Cửa sổ ngắn + trần cao: vẫn chặn được bot bắn dồn dập, người thật thì không
+   * bao giờ chạm tới. Đăng nhập và AI đã có giới hạn chặt riêng bên dưới.
+   */
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().default(60_000), // 1 phút
+  RATE_LIMIT_MAX: z.coerce.number().int().default(300),
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().default(5),
   AI_RATE_LIMIT_MAX: z.coerce.number().int().default(20),
 
@@ -107,6 +117,29 @@ const envSchema = z.object({
   GEMINI_API_KEYS: z.string().optional(),
   /** Key dính 429/quota thì nghỉ bao lâu trước khi được dùng lại (mặc định 60 giây) */
   GEMINI_KEY_COOLDOWN_MS: z.coerce.number().int().min(1000).default(60_000),
+
+  /**
+   * ⏱️ Thời gian chờ TỐI ĐA cho MỘT LƯỢT gọi Gemini (không phải cho cả câu hỏi).
+   *
+   * 🐛 LỖI ĐÃ GẶP THẬT (27/09/2026): đo 30 lượt gọi tới máy chủ Gemini thì
+   * 10-20% lượt bị TREO HẲN giữa đường (lỗi mạng tới Google, xảy ra với cả
+   * SDK lẫn fetch thuần, cả IPv4 lẫn IPv6). Lượt gọi bình thường chỉ mất ~1,3
+   * giây. Trước đây một lượt treo ngốn trọn 35 giây ngân sách của câu hỏi,
+   * nên người dùng phải chờ 35 giây rồi nhận thông báo 'máy chủ AI quá tải'.
+   *
+   * 5 giây = gần 4 lần thời gian của lượt gọi bình thường (~1,3 giây). Đo thêm
+   * ngày 27/09 cho thấy cú treo KHÔNG nằm ở khâu kết nối (DNS/TCP/TLS chỉ ~60ms)
+   * mà ở khâu chờ Google trả lời — chờ lâu cũng vô ích, bỏ sớm rồi thử lại thì
+   * nhanh hơn hẳn: 5 lượt x 5 giây vẫn nằm gọn trong ngân sách 45 giây.
+   */
+  GEMINI_ATTEMPT_TIMEOUT_MS: z.coerce.number().int().min(1000).default(4_000),
+
+  /**
+   * Số lượt thử tối đa cho một lời gọi Gemini (tính cả lượt đầu).
+   * Tỉ lệ treo đo được dao động 10-50% tuỳ thời điểm. Thử 5 lượt thì ngay cả ở
+   * mức tệ nhất (50%), xác suất hỏng cả 5 chỉ còn ~3%.
+   */
+  GEMINI_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(5),
   GEMINI_MODEL: z.string().default('gemini-3.6-flash'),
   /** Model "nặng" hơn, chỉ dùng cho tác vụ cần suy luận sâu (phân tích trận) */
   GEMINI_MODEL_PRO: z.string().default('gemini-3.6-pro'),

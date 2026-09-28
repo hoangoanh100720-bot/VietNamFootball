@@ -25,7 +25,7 @@ import { ErrorState, LoadingList, Skeleton } from '@/components/common/States';
 import { PlayerAvatar } from '@/components/common/TeamLogo';
 import { FormationPitch, PitchLegend } from '@/components/squad/FormationPitch';
 import { squadApi } from '@/api/endpoints';
-import { formatEuro, POSITION_LABEL, shortenName } from '@/utils/format';
+import { formatDate, formatEuro, POSITION_LABEL, shortenName } from '@/utils/format';
 import type { LineupPlayer } from '@/types';
 import { HeroBanner } from '@/components/decor';
 import { Seo } from '@/components/common/Seo';
@@ -150,8 +150,15 @@ export default function SquadTab() {
             {' – '}
             {lastMatchQuery.data.match.away_score} {lastMatchQuery.data.match.away_name}
           </AppText>
+          {/*
+            Ghi NGÀY của trận đang vẽ: tab lấy trận GẦN NHẤT CÓ BIÊN BẢN ĐỘI HÌNH,
+            có thể khác trận mới đá xong (nếu trận đó chưa có biên bản).
+          */}
           <AppText variant="caption" tone="faint">
-            Chạm vào cầu thủ để xem vì sao có điểm đó
+            {formatDate(lastMatchQuery.data.match.kickoff_at)}
+            {[...lastMatchQuery.data.starting, ...lastMatchQuery.data.bench].some((p) => p.rating != null)
+              ? ' · Chạm vào cầu thủ để xem vì sao có điểm đó'
+              : ' · Chưa có điểm cầu thủ cho trận này'}
           </AppText>
         </View>
       )}

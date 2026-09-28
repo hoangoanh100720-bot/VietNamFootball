@@ -31,7 +31,7 @@ export const TEAM_PROFILE = {
   intro_text:
     'Đội tuyển bóng đá quốc gia Việt Nam là đại diện của bóng đá Việt Nam trên đấu trường ' +
     'quốc tế, do Liên đoàn Bóng đá Việt Nam (VFF) quản lý. Với biệt danh "Những chiến binh ' +
-    'Sao Vàng", đội tuyển là niềm tự hào của hàng chục triệu người hâm mộ, từng ba lần vô địch ' +
+    'Sao Vàng", đội tuyển là niềm tự hào của hàng chục triệu người hâm mộ, từng bốn lần vô địch ' +
     'Đông Nam Á và hai lần vào tứ kết Asian Cup. Sân nhà truyền thống là Sân vận động Quốc gia ' +
     'Mỹ Đình ở Hà Nội.',
   best_fifa_rank: 94,
@@ -40,6 +40,7 @@ export const TEAM_PROFILE = {
 
 /** result: champion | runner_up | third_place | semi_final | quarter_final | group_stage | qualified */
 export const ACHIEVEMENTS = [
+  { competition: 'ASEAN Cup', edition_year: 2026, result: 'champion' as const, title: 'Vô địch ASEAN Cup 2026', host: 'Đông Nam Á', is_highlight: true, description: 'Thắng Thái Lan với tổng tỷ số 4-2 sau hai lượt chung kết (2-0 tại Bangkok, 2-2 tại Mỹ Đình) — lần đầu bảo vệ thành công ngôi vô địch Đông Nam Á.' },
   { competition: 'ASEAN Cup', edition_year: 2024, result: 'champion' as const, title: 'Vô địch ASEAN Cup 2024', host: 'Đông Nam Á', is_highlight: true, description: 'Thắng Thái Lan với tổng tỷ số 5-3 sau hai lượt chung kết.' },
   { competition: 'AFF Cup', edition_year: 2018, result: 'champion' as const, title: 'Vô địch AFF Cup 2018', host: 'Đông Nam Á', is_highlight: true, description: 'Vô địch sau 10 năm chờ đợi, thắng Malaysia ở chung kết.' },
   { competition: 'AFF Cup', edition_year: 2008, result: 'champion' as const, title: 'Vô địch AFF Cup 2008', host: 'Đông Nam Á', is_highlight: true, description: 'Chức vô địch Đông Nam Á đầu tiên trong lịch sử.' },
@@ -53,7 +54,7 @@ export const ACHIEVEMENTS = [
 // ---------------------------------------------------------------------------
 export const ONBOARDING_SLIDES = [
   { sort_order: 1, title: 'Những chiến binh Sao Vàng', body: 'Đội tuyển quốc gia Việt Nam do VFF quản lý, thi đấu tại AFC và AFF, sân nhà là Mỹ Đình.' },
-  { sort_order: 2, title: 'Hành trình vinh quang', body: 'Ba lần vô địch Đông Nam Á (2008, 2018, 2024) và hai lần vào tứ kết Asian Cup (2007, 2019).' },
+  { sort_order: 2, title: 'Hành trình vinh quang', body: 'Bốn lần vô địch Đông Nam Á (2008, 2018, 2024, 2026) và hai lần vào tứ kết Asian Cup (2007, 2019).' },
   { sort_order: 3, title: 'Ban huấn luyện & đội hình', body: 'Theo dõi huấn luyện viên trưởng, danh sách triệu tập và đội hình ra sân từng trận.' },
   { sort_order: 4, title: 'Sẵn sàng cổ vũ!', body: 'Bật thông báo để không bỏ lỡ bàn thắng. Cần chữ to dễ đọc? Bật "Giao diện người lớn tuổi" trong Cài đặt.' },
 ];
@@ -405,11 +406,12 @@ export const KB_DOCUMENTS = [
   },
   {
     source: 'history' as const,
-    title: 'Ba chức vô địch Đông Nam Á của đội tuyển Việt Nam',
+    title: 'Bốn chức vô địch Đông Nam Á của đội tuyển Việt Nam',
     body:
-      'Đội tuyển Việt Nam vô địch Đông Nam Á ba lần. Năm 2008 là chức vô địch đầu tiên trong lịch sử. ' +
+      'Đội tuyển Việt Nam vô địch Đông Nam Á bốn lần. Năm 2008 là chức vô địch đầu tiên trong lịch sử. ' +
       'Năm 2018, đội tuyển vô địch sau mười năm chờ đợi. Năm 2024, đội tuyển vô địch ASEAN Cup sau khi ' +
-      'thắng Thái Lan ở hai lượt chung kết. Ngoài ra đội tuyển hai lần vào tứ kết Asian Cup, năm 2007 ' +
+      'thắng Thái Lan ở hai lượt chung kết. Năm 2026, đội tuyển bảo vệ thành công ngôi vô địch, lại thắng ' +
+      'Thái Lan với tổng tỷ số 4-2. Ngoài ra đội tuyển hai lần vào tứ kết Asian Cup, năm 2007 ' +
       'khi là một trong các nước chủ nhà và năm 2019 tại UAE.',
   },
 ];

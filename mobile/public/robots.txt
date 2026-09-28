@@ -38,4 +38,4 @@ Crawl-delay: 1
 # ⚠️ ĐỔI THÀNH TÊN MIỀN THẬT CỦA BẠN.
 # Đây là cách đáng tin cậy nhất để báo cho mọi cỗ máy tìm kiếm biết sitemap
 # nằm ở đâu — không phụ thuộc vào việc bạn có khai báo trong Search Console hay chưa.
-Sitemap: https://doituyenvietnam.vn/sitemap.xml
+Sitemap: https://bongda.oanh.online/sitemap.xml

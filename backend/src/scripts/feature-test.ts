@@ -28,8 +28,8 @@ import { decodeCursor, encodeCursor, resultForVietnam } from '@/modules/stats/st
 import { describeVietnamPosition, type StandingRow } from '@/modules/competitions/competitions.service';
 import { THEMES } from '@/db/seeds/featureData';
 import { EVAL_CASES } from '@/eval/questions';
-import { isRefusal, normalize } from '@/eval/grading';
-import { isBettingQuestion } from '@/services/chat/chat.service';
+import { isBettingWarning, isRefusal, normalize } from '@/eval/grading';
+import { BETTING_WARNING, classifyBetting, isBettingQuestion } from '@/services/chat/chat.service';
 
 let passed = 0;
 let failed = 0;
@@ -191,12 +191,33 @@ check('Không trùng id', new Set(EVAL_CASES.map((c) => c.id)).size === EVAL_CAS
  * nghe vô hại, cho tới khi nó chặn luôn một câu hỏi bình thường có chứa "bet".
  */
 const blockedCases = EVAL_CASES.filter((c) => c.expect.blocked);
-const leaked = blockedCases.filter((c) => !isBettingQuestion(c.question));
-check(`${blockedCases.length} câu bẫy có từ khoá đều bị lớp lọc chặn`, leaked.length === 0, leaked.map((c) => c.question).join(' | '));
+const leaked = blockedCases.filter((c) => classifyBetting(c.question) !== 'hard');
+check(`${blockedCases.length} câu hỏi nhà cái / cách cá cược bị chặn cứng`, leaked.length === 0, leaked.map((c) => c.question).join(' | '));
+
+const flaggedCases = EVAL_CASES.filter((c) => c.expect.flagged);
+const notSoft = flaggedCases.filter((c) => classifyBetting(c.question) !== 'soft');
+check(`${flaggedCases.length} câu soi kèo vẫn được dự đoán + gắn khuyến cáo`, notSoft.length === 0, notSoft.map((c) => c.question).join(' | '));
+check('Lời khuyến cáo gắn sẵn được bộ chấm nhận ra', isBettingWarning(BETTING_WARNING));
+check('Lời khuyến cáo không bị coi là từ chối', !isRefusal(BETTING_WARNING));
 
 const legit = EVAL_CASES.filter((c) => c.expect.tools);
 const falseBlocked = legit.filter((c) => isBettingQuestion(c.question));
 check(`${legit.length} câu hợp lệ không bị chặn nhầm`, falseBlocked.length === 0, falseBlocked.map((c) => c.question).join(' | '));
+
+/** Câu thường mà khi bỏ dấu / so chuỗi con thì trùng từ khoá cá cược */
+const lookalikes = [
+  'Cả đội tuyển có bao nhiêu cầu thủ?',   // "ca doi" ⊃ "ca do"
+  'Ca doi tuyen co bao nhieu cau thu',
+  'Cả đó là trận hay nhất năm',           // "ca do"
+  'Cầu thủ nào kéo bóng tốt nhất?',       // "keo bong"
+  'Real Betis có cầu thủ Việt Nam không?', // "bet"
+  'Ai là cầu thủ better nhất đội?',
+  'Lo để dành sức cho trận chung kết không?', // "lo de"
+  'Dự đoán tỷ số trận Việt Nam gặp Thái Lan',
+];
+const lookalikeBlocked = lookalikes.filter((q) => isBettingQuestion(q));
+check(`${lookalikes.length} câu "na ná từ khoá" không bị chặn nhầm`, lookalikeBlocked.length === 0, lookalikeBlocked.join(' | '));
+check('Cá độ có dấu vẫn bị chặn', isBettingQuestion('Cá độ trận này có ăn không'));
 
 check('Chuẩn hoá số kiểu Việt: "1.178,5" = "1178.5"', normalize('1.178,5 điểm') === normalize('1178.5 điểm'));
 check('Chuẩn hoá tỷ số: "2 – 0" = "2-0"', normalize('thắng 2 – 0') === 'thang 2-0');

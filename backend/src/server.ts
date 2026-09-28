@@ -23,6 +23,8 @@ import { createApp } from '@/app';
 import { env } from '@/config/env';
 import { logger } from '@/utils/logger';
 import { closeDatabase, connectDatabase } from '@/config/database';
+import { runMigrations } from '@/db/migrate';
+import { applyDataPatches } from '@/db/dataPatches';
 import { closeCache, connectCache } from '@/utils/cache';
 import { closeSocket, initSocket } from '@/services/socket.service';
 import { startLivePolling, stopLivePolling } from '@/jobs/livePoll.job';
@@ -31,6 +33,19 @@ import { startScheduler, stopScheduler } from '@/jobs/scheduler';
 async function bootstrap() {
   // --------- 1. Database + Cache ---------
   await connectDatabase();
+  /**
+   * ⭐ TỰ ÁP MIGRATION CÒN THIẾU NGAY KHI KHỞI ĐỘNG.
+   *
+   * Vì sao không để người dùng tự chạy `npm run migrate`? Với PGlite, lệnh đó
+   * mở database bằng một tiến trình THỨ HAI — nếu server đang chạy, hai tiến
+   * trình cùng ghi vào một thư mục dữ liệu và database HỎNG (đã xảy ra thật ngày
+   * 27/09/2026, phải cứu bằng pg_resetwal). Chạy trong chính server thì luôn chỉ
+   * có một tiến trình. runMigrations bỏ qua file đã chạy, nên mỗi lần khởi động
+   * chỉ tốn một câu SELECT. Migration lỗi -> server dừng, không chạy trên dữ liệu dở dang.
+   */
+  await runMigrations();
+  // Bản vá DỮ LIỆU viết bằng TS (vd: thay trận mẫu bằng trận thật) — mỗi bản chạy đúng một lần
+  await applyDataPatches();
   await connectCache();
 
   // --------- 2. HTTP server ---------
